@@ -81,7 +81,7 @@ generate_env_file() {
 
     # 基于模板生成配置文件
     if [[ -f "$DEPLOY_DIR/.env.template" ]]; then
-        sed "s/YOUR_SERVER_IP_HERE/$server_ip/g" "$DEPLOY_DIR/.env.template" > "$ENV_FILE"
+        sed "s#YOUR_SERVER_IP_HERE#$server_ip#g" "$DEPLOY_DIR/.env.template" > "$ENV_FILE"
         log_success "基于模板生成配置文件: $ENV_FILE"
     else
         # 直接创建配置文件
