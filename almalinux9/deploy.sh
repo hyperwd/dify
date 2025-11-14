@@ -245,16 +245,123 @@ pull_official_images() {
 
 # 构建品牌前端镜像
 build_brand_image() {
+    local server_ip="$1"
+
     log_info "构建品牌前端镜像..."
 
     cd "$DEPLOY_DIR"
 
+    # 创建临时的Dockerfile用于构建，将IP地址直接写入
+    local temp_dockerfile=$(mktemp)
+    cat > "$temp_dockerfile" << EOF
+# 品牌定制前端 Dockerfile - 动态IP版本
+FROM node:22-alpine3.21 AS base
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/\$TZ /etc/localtime && echo \$TZ > /etc/timezone
+
+# Set UTF-8 locale
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Enable corepack
+RUN corepack enable
+
+# Set Node.js environment
+ENV PNPM_HOME="/pnpm"
+ENV PATH="\$PNPM_HOME:\$PATH"
+ENV NODE_ENV=production
+ENV EDITION=SELF_HOSTED
+ENV DEPLOY_ENV=PRODUCTION
+ENV CONSOLE_API_URL=http://$server_ip:5001
+ENV APP_API_URL=http://$server_ip:5001
+ENV MARKETPLACE_API_URL=https://marketplace.dify.ai
+ENV MARKETPLACE_URL=https://marketplace.dify.ai
+ENV NEXT_PUBLIC_BASE_PATH=
+ENV NEXT_PUBLIC_API_URL=http://$server_ip:5001
+ENV NEXT_PUBLIC_CONSOLE_URL=http://$server_ip:3000
+
+WORKDIR /app/web
+
+# install packages stage
+FROM base AS packages
+
+COPY package.json .
+COPY pnpm-lock.yaml .
+
+# Use packageManager from package.json
+RUN corepack install
+
+RUN pnpm install --frozen-lockfile
+
+# build resources
+FROM base AS builder
+WORKDIR /app/web
+
+COPY --from=packages /app/web/ ./
+COPY . .
+
+# 禁用 Next.js 遥测
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Set Node.js options for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+RUN pnpm build:docker
+
+# production stage - 使用构建结果
+FROM node:22-alpine3.21 AS production
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/\$TZ /etc/localtime && echo \$TZ > /etc/timezone
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV EDITION=SELF_HOSTED
+ENV DEPLOY_ENV=PRODUCTION
+ENV CONSOLE_API_URL=http://$server_ip:5001
+ENV APP_API_URL=http://$server_ip:5001
+ENV MARKETPLACE_API_URL=https://marketplace.dify.ai
+ENV MARKETPLACE_URL=https://marketplace.dify.ai
+ENV NEXT_PUBLIC_BASE_PATH=
+ENV NEXT_PUBLIC_API_URL=http://$server_ip:5001
+ENV NEXT_PUBLIC_CONSOLE_URL=http://$server_ip:3000
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \\
+    adduser -S nextjs -u 1001
+
+WORKDIR /app/web
+
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/web/public ./public
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \\
+    CMD curl -f http://localhost:3000 || exit 1
+
+# Start the application
+CMD ["node", "server.js"]
+EOF
+
+    # 使用临时Dockerfile构建
     if docker compose version &> /dev/null; then
-        docker compose -f "$COMPOSE_FILE" build web
+        docker build -t dify-web-brand -f "$temp_dockerfile" ../web
     else
-        docker-compose -f "$COMPOSE_FILE" build web
+        docker build -t dify-web-brand -f "$temp_dockerfile" ../web
     fi
 
+    rm "$temp_dockerfile"
     log_success "品牌前端镜像构建完成"
 }
 
@@ -456,7 +563,7 @@ main() {
         check_system
         generate_compose_file "$server_ip" "$COMPOSE_FILE"
         generate_env_file "$server_ip"
-        build_brand_image
+        build_brand_image "$server_ip"
         exit 0
     fi
 
@@ -478,7 +585,7 @@ main() {
     generate_env_file "$server_ip"
     stop_existing_services
     pull_official_images
-    build_brand_image
+    build_brand_image "$server_ip"
     start_services
     check_services "$server_ip"
     show_access_info "$server_ip"

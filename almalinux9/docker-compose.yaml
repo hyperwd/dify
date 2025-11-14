@@ -74,27 +74,15 @@ services:
 
   # Dify Web Service - 自定义品牌构建
   web:
-    build:
-      context: ../web
-      dockerfile: ../almalinux9/Dockerfile.web.brand
+    image: dify-web-brand
     container_name: dify-web
     restart: unless-stopped
-    environment:
-      CONSOLE_API_URL: SERVER_IP_HERE:5001
-      CONSOLE_WEB_URL: SERVER_IP_HERE:3000
-      APP_API_URL: SERVER_IP_HERE:5001
-      APP_WEB_URL: SERVER_IP_HERE:3000
-      NODE_ENV: production
-      EDITION: SELF_HOSTED
-      DEPLOY_ENV: PRODUCTION
-      NEXT_PUBLIC_API_URL: SERVER_IP_HERE:5001
-      NEXT_PUBLIC_CONSOLE_URL: SERVER_IP_HERE:3000
     depends_on:
       - api
     networks:
       - dify-network
     ports:
-      - "SERVER_IP_HERE:3000:3000"
+      - "3000:3000"
 
   # PostgreSQL Database
   db:
