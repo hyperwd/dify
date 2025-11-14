@@ -78,19 +78,18 @@ generate_compose_file() {
         # 创建临时文件进行替换
         local temp_file=$(mktemp)
 
-        # 替换所有的SERVER_IP_HERE占位符
-        sed "s#SERVER_IP_HERE#$server_ip#g" "$COMPOSE_FILE" > "$temp_file"
+        # 替换所有的SERVER_IP_HERE占位符，同时处理端口映射
+        sed "s#SERVER_IP_HERE:5001:5001#5001:5001#g" "$COMPOSE_FILE" | \
+        sed "s#SERVER_IP_HERE:3000:3000#3000:3000#g" | \
+        sed "s#SERVER_IP_HERE#$server_ip#g" > "$temp_file"
 
-        # 添加http://前缀（如果没有的话）
+        # 添加http://前缀到环境变量中的URL
         sed "s#CONSOLE_API_URL: $server_ip:#CONSOLE_API_URL: http://$server_ip:#g" "$temp_file" | \
         sed "s#CONSOLE_WEB_URL: $server_ip:#CONSOLE_WEB_URL: http://$server_ip:#g" | \
         sed "s#APP_API_URL: $server_ip:#APP_API_URL: http://$server_ip:#g" | \
         sed "s#APP_WEB_URL: $server_ip:#APP_WEB_URL: http://$server_ip:#g" | \
         sed "s#NEXT_PUBLIC_API_URL: $server_ip:#NEXT_PUBLIC_API_URL: http://$server_ip:#g" | \
-        sed "s#NEXT_PUBLIC_CONSOLE_URL: $server_ip:#NEXT_PUBLIC_CONSOLE_URL: http://$server_ip:#g" | \
-        # 修复端口映射，移除IP前缀
-        sed "s#\"$server_ip:5001:5001#\"#\"5001:5001\"#g" | \
-        sed "s#\"$server_ip:3000:3000#\"#\"3000:3000\"#g" > "$COMPOSE_FILE"
+        sed "s#NEXT_PUBLIC_CONSOLE_URL: $server_ip:#NEXT_PUBLIC_CONSOLE_URL: http://$server_ip:#g" > "$COMPOSE_FILE"
 
         rm "$temp_file"
         log_success "Docker Compose配置文件更新完成: $COMPOSE_FILE"
