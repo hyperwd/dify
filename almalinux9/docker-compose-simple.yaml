@@ -4,6 +4,8 @@ services:
     image: langgenius/dify-api:0.9.0
     container_name: dify-api
     restart: unless-stopped
+    ports:
+      - "5001:5001"
     environment:
       MODE: api
       LOG_LEVEL: INFO
