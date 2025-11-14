@@ -1,370 +1,130 @@
-# Dify AlmaLinux 9 部署指南
+# Dify AlmaLinux 9 部署
 
-这是一个为 AlmaLinux 9 优化的 Dify 部署解决方案，包含完整的 Docker 容器化部署、健康检查和监控系统。
+一个为 AlmaLinux 9 优化的 Dify 部署解决方案，使用官方基础镜像，仅重新构建前端来应用品牌定制。
 
-## 🚀 快速开始
+## 🚀 快速部署
 
 ### 1. 系统要求
 
-- AlmaLinux 9 或其他 RHEL 系系列
-- 至少 4GB RAM，推荐 8GB 或更多
-- 至少 20GB 可用磁盘空间
+- AlmaLinux 9 或其他 Linux 系统
 - Docker 和 Docker Compose
-- 具有 sudo 权限的用户账户
+- 网络连接（拉取官方镜像）
 
-### 2. 安装系统依赖
+### 2. 部署命令
 
 ```bash
 # 克隆或下载项目到服务器
-# 假设项目已下载到 /opt/dify
-
-# 安装系统依赖
 cd /opt/dify/almalinux9
-sudo ./install-dependencies.sh
 
-# 重新登录以使用户组生效
-```
-
-### 3. 部署 Dify
-
-```bash
-# 完整部署
+# 一键部署（自动检测IP）
 ./deploy.sh
 
-# 或者分步部署
-./deploy.sh --env-only  # 仅设置环境
-# 编辑 .env 文件配置 API 密钥等
-./deploy.sh             # 执行部署
+# 或者手动指定IP
+./deploy.sh 10.81.97.39
 ```
 
-### 4. 访问服务
+### 3. 配置环境变量
 
-部署完成后，可以通过以下地址访问：
-
-- **Web 界面**: http://localhost
-- **API 文档**: http://localhost/docs
-- **健康检查**: http://localhost/health
-
-## 📁 项目结构
-
-```
-almalinux9/
-├── README.md                    # 本文档
-├── .env.example                 # 环境配置模板
-├── docker-compose.yaml          # Docker Compose 配置
-├── Dockerfile.api               # API 服务 Dockerfile
-├── Dockerfile.web               # Web 服务 Dockerfile
-├── nginx/
-│   ├── nginx.conf              # Nginx 主配置
-│   └── proxy.conf              # 代理配置
-├── deploy.sh                    # 部署脚本
-├── install-dependencies.sh      # 系统依赖安装脚本
-└── health-check.sh              # 健康检查和监控脚本
-```
-
-## ⚙️ 配置说明
-
-### 环境配置 (.env)
-
-复制 `.env.example` 为 `.env` 并根据需要修改：
+部署完成后，编辑 `.env` 文件配置 OpenAI API 密钥：
 
 ```bash
-cp .env.example .env
+vim .env
+# 修改 OPENAI_API_KEY
+OPENAI_API_KEY=your-openai-api-key
 ```
 
-主要配置项：
-
-- `SECRET_KEY`: 安全密钥（建议修改）
-- `DATABASE_URL`: 数据库连接
-- `REDIS_URL`: Redis 连接
-- `VECTOR_STORE`: 向量数据库类型
-- `STORAGE_TYPE`: 存储类型
-- `OPENAI_API_KEY`: OpenAI API 密钥
-
-### 向量数据库选择
-
-支持以下向量数据库：
-
+然后重启服务：
 ```bash
-# Weaviate（默认）
-VECTOR_STORE=weaviate
-
-# Qdrant
-VECTOR_STORE=qdrant
-
-# Milvus
-VECTOR_STORE=milvus
-```
-
-### 存储配置
-
-支持多种存储后端：
-
-```bash
-# 本地存储（默认）
-STORAGE_TYPE=local
-
-# AWS S3
-STORAGE_TYPE=s3
-S3_BUCKET_NAME=your-bucket
-S3_ACCESS_KEY=your-access-key
-S3_SECRET_KEY=your-secret-key
-```
-
-## 🔧 管理命令
-
-### 服务管理
-
-```bash
-# 启动服务
-./deploy.sh
-
-# 停止服务
-cd /opt/dify/almalinux9
-docker compose down
-
-# 重启服务
 docker compose restart
+```
 
+## 📋 文件说明
+
+- `deploy.sh`: 主部署脚本，支持自动IP检测
+- `docker-compose.yaml`: Docker编排配置（含IP占位符）
+- `.env.example`: 环境配置模板
+- `Dockerfile.web.brand`: 品牌定制前端Dockerfile
+
+## 🌐 访问地址
+
+部署完成后：
+
+- **Web 界面**: http://你的服务器IP:3000
+- **API 服务**: http://你的服务器IP:5001
+
+## ⚙️ 配置选项
+
+### 手动指定IP
+```bash
+./deploy.sh -i 192.168.1.100
+```
+
+### 仅生成配置文件
+```bash
+./deploy.sh -e 192.168.1.100
+```
+
+### 仅拉取镜像
+```bash
+./deploy.sh -p
+```
+
+### 仅构建前端
+```bash
+./deploy.sh -b
+```
+
+## 🛠️ 管理命令
+
+```bash
 # 查看服务状态
 docker compose ps
 
 # 查看日志
 docker compose logs -f
+
+# 停止服务
+docker compose down
+
+# 重启服务
+docker compose restart
+
+# 更新部署
+git pull origin main
+./deploy.sh
 ```
 
-### 健康检查
+## 🔧 架构特点
 
-```bash
-# 完整健康检查
-./health-check.sh
+- ✅ **官方兼容**: API、Worker、数据库等使用官方镜像
+- ✅ **品牌定制**: 仅重新构建前端应用品牌定制
+- ✅ **动态IP**: 支持自动检测或手动指定服务器IP
+- ✅ **简化配置**: 最小化配置，避免复杂的认证问题
 
-# 持续监控
-./health-check.sh --watch
-
-# 生成健康报告
-./health-check.sh --report
-
-# 检查特定组件
-./health-check.sh --services
-./health-check.sh --resources
-./health-check.sh --database
-```
-
-### 系统监控
-
-```bash
-# 查看系统状态
-dify-monitor
-
-# 服务管理快捷命令
-dify-service start|stop|restart|status|logs|update|clean
-```
-
-## 🛠️ 故障排除
+## 🐛 故障排除
 
 ### 常见问题
 
-1. **端口冲突**
-   ```bash
-   # 检查端口占用
-   netstat -tulpn | grep :80
+1. **IP地址错误**: 重新运行部署脚本指定正确IP
+2. **端口冲突**: 确保端口 3000 和 5001 未被占用
+3. **镜像拉取失败**: 检查网络连接或使用国内镜像源
 
-   # 停止冲突服务
-   sudo systemctl stop nginx
-   ```
-
-2. **Docker 权限问题**
-   ```bash
-   # 添加用户到 docker 组
-   sudo usermod -aG docker $USER
-
-   # 重新登录
-   ```
-
-3. **内存不足**
-   ```bash
-   # 检查内存使用
-   free -h
-
-   # 创建交换文件
-   sudo fallocate -l 4G /swapfile
-   sudo chmod 600 /swapfile
-   sudo mkswap /swapfile
-   sudo swapon /swapfile
-   ```
-
-4. **磁盘空间不足**
-   ```bash
-   # 清理 Docker
-   docker system prune -a
-
-   # 清理日志
-   sudo journalctl --vacuum-time=7d
-   ```
-
-### 日志位置
-
-- **应用日志**: `../volumes/app/logs/`
-- **Nginx 日志**: `../volumes/web/nginx/logs/`
-- **健康检查日志**: `health-check.log`
-- **Docker 日志**: `docker compose logs [service-name]`
-
-### 性能优化
-
-1. **系统优化**：
-   ```bash
-   # 调整文件描述符限制
-   echo "* soft nofile 65536" | sudo tee -a /etc/security/limits.conf
-   echo "* hard nofile 65536" | sudo tee -a /etc/security/limits.conf
-   ```
-
-2. **Docker 优化**：
-   ```bash
-   # 配置 Docker 日志轮转
-   sudo tee /etc/docker/daemon.json > /dev/null <<EOF
-   {
-     "log-driver": "json-file",
-     "log-opts": {
-       "max-size": "10m",
-       "max-file": "3"
-     }
-   }
-   EOF
-
-   sudo systemctl restart docker
-   ```
-
-## 🔒 安全配置
-
-### SSL/TLS 配置
-
-1. **获取 SSL 证书**：
-   ```bash
-   # 使用 Let's Encrypt
-   sudo dnf install certbot
-   sudo certbot certonly --standalone -d your-domain.com
-   ```
-
-2. **配置 Nginx HTTPS**：
-   ```bash
-   # 编辑 nginx/nginx.conf
-   # 取消 HTTPS server 块的注释
-   # 更新证书路径
-   ```
-
-### 防火墙配置
-
+### 日志查看
 ```bash
-# 开放必要端口
-sudo firewall-cmd --permanent --add-port=80/tcp
-sudo firewall-cmd --permanent --add-port=443/tcp
-sudo firewall-cmd --reload
+# 查看所有服务日志
+docker compose logs -f
+
+# 查看特定服务日志
+docker compose logs -f web
+docker compose logs -f api
 ```
 
-### 安全加固
+## 📝 更新说明
 
-- 修改默认密钥和密码
-- 启用防火墙
-- 定期更新系统
-- 配置备份策略
-- 监控异常访问
-
-## 📊 监控和告警
-
-### 内置监控
-
-- **健康检查**: 自动检测服务状态
-- **资源监控**: CPU、内存、磁盘使用率
-- **日志监控**: 自动检测错误日志
-
-### 告警配置
-
-在 `health-check.sh` 中配置：
-
-```bash
-# 邮件告警
-ALERT_EMAIL="admin@your-domain.com"
-
-# Webhook 告警
-WEBHOOK_URL="https://hooks.slack.com/services/..."
-```
-
-### 外部监控
-
-可以集成以下监控系统：
-
-- Prometheus + Grafana
-- ELK Stack
-- Zabbix
-- Nagios
-
-## 🔄 备份和恢复
-
-### 数据备份
-
-```bash
-# 备份数据库
-docker compose exec db pg_dump -U postgres dify > backup.sql
-
-# 备份存储数据
-tar -czf storage-backup.tar.gz ../volumes/app/storage/
-```
-
-### 数据恢复
-
-```bash
-# 恢复数据库
-docker compose exec -T db psql -U postgres -d dify < backup.sql
-
-# 恢复存储数据
-tar -xzf storage-backup.tar.gz -C ../volumes/app/
-```
-
-## 📈 升级指南
-
-### 升级 Dify
-
-```bash
-# 备份数据
-./backup.sh
-
-# 拉取最新代码
-git pull origin main
-
-# 重新构建和部署
-./deploy.sh --build
-
-# 检查服务状态
-./health-check.sh
-```
-
-### 版本回滚
-
-```bash
-# 切换到指定版本
-git checkout v1.0.0
-
-# 重新部署
-./deploy.sh --build
-```
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来改进这个部署方案。
-
-## 📄 许可证
-
-本项目遵循与 Dify 主项目相同的许可证。
-
-## 📞 支持
-
-如果遇到问题，请：
-
-1. 查看[故障排除](#故障排除)部分
-2. 检查健康检查日志
-3. 提交 Issue 到项目仓库
+- IP地址变化时，重新运行 `./deploy.sh` 即可
+- 品牌资源更新时，使用 `./deploy.sh -b` 重新构建前端
+- 系统更新后，使用 `./deploy.sh -p` 更新镜像
 
 ---
 
-**注意**: 这是一个针对 AlmaLinux 9 优化的部署方案，在其他系统上可能需要调整配置。
+这个部署方案专注于稳定性和易用性，最大程度保持与官方Dify的兼容性。

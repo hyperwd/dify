@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================================
-# Dify AlmaLinux 9 快速部署脚本
+# Dify AlmaLinux 9 最终部署脚本（动态IP替换）
 # ============================================================================
 
 set -e
@@ -33,9 +33,140 @@ log_error() {
 # 脚本配置
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-DEPLOY_DIR="$PROJECT_DIR/almalinux9"
+DEPLOY_DIR="$SCRIPT_DIR"
 COMPOSE_FILE="$DEPLOY_DIR/docker-compose.yaml"
 ENV_FILE="$DEPLOY_DIR/.env"
+
+# 自动获取服务器IP
+detect_server_ip() {
+    # 尝试多种方法获取IP地址
+    local ip=""
+
+    # 方法1: 使用hostname -I
+    if command -v hostname >/dev/null 2>&1; then
+        ip=$(hostname -I | awk '{print $1}')
+    fi
+
+    # 方法2: 使用ip route
+    if [[ -z "$ip" ]] && command -v ip >/dev/null 2>&1; then
+        ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -1)
+    fi
+
+    # 方法3: 使用默认网关接口
+    if [[ -z "$ip" ]]; then
+        local interface=$(ip route | grep default | awk '{print $5}' | head -1)
+        if [[ -n "$interface" ]]; then
+            ip=$(ip addr show "$interface" | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1 | head -1)
+        fi
+    fi
+
+    # 方法4: 回退到localhost（仅用于测试）
+    if [[ -z "$ip" ]]; then
+        ip="localhost"
+    fi
+
+    echo "$ip"
+}
+
+# 生成动态docker-compose文件
+generate_compose_file() {
+    local server_ip="$1"
+
+    log_info "更新Docker Compose配置文件中的IP地址..."
+
+    if [[ -f "$COMPOSE_FILE" ]]; then
+        # 创建临时文件进行替换
+        local temp_file=$(mktemp)
+
+        # 替换所有的SERVER_IP_HERE占位符
+        sed "s#SERVER_IP_HERE#$server_ip#g" "$COMPOSE_FILE" > "$temp_file"
+
+        # 添加http://前缀（如果没有的话）
+        sed "s#CONSOLE_API_URL: $server_ip:#CONSOLE_API_URL: http://$server_ip:#g" "$temp_file" | \
+        sed "s#CONSOLE_WEB_URL: $server_ip:#CONSOLE_WEB_URL: http://$server_ip:#g" | \
+        sed "s#APP_API_URL: $server_ip:#APP_API_URL: http://$server_ip:#g" | \
+        sed "s#APP_WEB_URL: $server_ip:#APP_WEB_URL: http://$server_ip:#g" | \
+        sed "s#NEXT_PUBLIC_API_URL: $server_ip:#NEXT_PUBLIC_API_URL: http://$server_ip:#g" | \
+        sed "s#NEXT_PUBLIC_CONSOLE_URL: $server_ip:#NEXT_PUBLIC_CONSOLE_URL: http://$server_ip:#g" > "$COMPOSE_FILE"
+
+        rm "$temp_file"
+        log_success "Docker Compose配置文件更新完成: $COMPOSE_FILE"
+    else
+        log_error "找不到配置文件: $COMPOSE_FILE"
+        exit 1
+    fi
+
+    # 显示生成的端口配置
+    log_info "生成的端口配置:"
+    grep -E "(5001:5001|3000:3000)" "$COMPOSE_FILE"
+}
+
+# 生成环境配置文件
+generate_env_file() {
+    local server_ip="$1"
+
+    log_info "生成环境配置文件..."
+
+    if [[ -f "$ENV_FILE" ]]; then
+        log_warning "环境配置文件已存在，将备份并重新生成"
+        cp "$ENV_FILE" "$ENV_FILE.backup.$(date +%Y%m%d_%H%M%S)"
+    fi
+
+    # 创建配置文件
+    cat > "$ENV_FILE" << EOF
+# Dify AlmaLinux 9 环境配置
+# 服务器IP: $server_ip
+
+# 基础配置
+SECRET_KEY=sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
+DEPLOY_ENV=PRODUCTION
+LOG_LEVEL=INFO
+
+# 数据库配置
+DATABASE_URL=postgresql://postgres:difyai123@db:5432/dify
+
+# Redis 配置（无密码）
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
+
+# 向量数据库配置
+VECTOR_STORE=weaviate
+WEAVIATE_ENDPOINT=http://weaviate:8080
+
+# 存储配置
+STORAGE_TYPE=local
+STORAGE_LOCAL_PATH=storage
+
+# 代码执行配置
+CODE_EXECUTION_ENDPOINT=http://sandbox:8194
+CODE_EXECUTION_API_KEY=dify-sandbox
+CODE_EXECUTION_TIMEOUT=15
+CODE_EXECUTION_CONNECTION_TIMEOUT=10
+
+# 代码执行限制
+CODE_MAX_NUMBER=9223372036854775807
+CODE_MIN_NUMBER=-9223372036854775808
+CODE_STRING_MAX_LENGTH=80000
+CODE_MAX_STRING_ARRAY_LENGTH=1000
+CODE_MAX_OBJECT_ARRAY_LENGTH=1000
+CODE_MAX_NUMBER_ARRAY_LENGTH=1000
+CODE_MAX_STRING_OBJECT_LENGTH=1000
+CODE_MAX_NUMBER_OBJECT_LENGTH=1000
+CODE_MAX_DEPTH=5
+
+# 模型配置
+OPENAI_API_BASE=https://api.openai.com/v1
+OPENAI_API_KEY=
+
+# 加密配置
+ENCRYPTION_KEY=
+
+# CORS 配置
+WEB_API_CORS_ALLOW_ORIGINS=*
+EOF
+
+    log_success "环境配置文件生成完成: $ENV_FILE"
+}
 
 # 检查是否为 root 用户
 check_root() {
@@ -53,46 +184,22 @@ check_root() {
 check_system() {
     log_info "检查系统要求..."
 
-    # 检查操作系统
-    if ! grep -q "AlmaLinux" /etc/os-release 2>/dev/null; then
-        log_warning "此脚本专为 AlmaLinux 9 优化，在其他系统上可能无法正常工作"
-    fi
-
-    # 检查 Docker
     if ! command -v docker &> /dev/null; then
-        log_error "Docker 未安装，请先安装 Docker"
+        log_error "Docker 未安装"
         exit 1
     fi
 
-    # 检查 Docker Compose
     if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-        log_error "Docker Compose 未安装，请先安装 Docker Compose"
+        log_error "Docker Compose 未安装"
         exit 1
     fi
 
-    # 检查 Docker 服务状态
     if ! systemctl is-active --quiet docker; then
-        log_error "Docker 服务未运行，请启动 Docker 服务"
+        log_error "Docker 服务未运行"
         exit 1
     fi
 
     log_success "系统要求检查通过"
-}
-
-# 安装系统依赖
-install_dependencies() {
-    log_info "检查系统依赖..."
-
-    # 安装必要的系统包
-    if command -v dnf &> /dev/null; then
-        sudo dnf update -y
-        sudo dnf install -y curl wget git unzip
-    elif command -v yum &> /dev/null; then
-        sudo yum update -y
-        sudo yum install -y curl wget git unzip
-    fi
-
-    log_success "系统依赖检查完成"
 }
 
 # 创建必要的目录
@@ -106,7 +213,6 @@ create_directories() {
         "$PROJECT_DIR/volumes/redis/data"
         "$PROJECT_DIR/volumes/weaviate"
         "$PROJECT_DIR/volumes/sandbox"
-        "$PROJECT_DIR/volumes/web/nginx/logs"
     )
 
     for dir in "${dirs[@]}"; do
@@ -117,50 +223,53 @@ create_directories() {
     log_success "目录创建完成"
 }
 
-# 设置环境配置
-setup_environment() {
-    log_info "设置环境配置..."
+# 拉取官方镜像
+pull_official_images() {
+    log_info "拉取官方服务镜像..."
 
-    if [[ ! -f "$ENV_FILE" ]]; then
-        log_info "复制环境配置文件..."
-        cp "$DEPLOY_DIR/.env.example" "$ENV_FILE"
-        log_success "环境配置文件已创建: $ENV_FILE"
-        log_warning "请根据需要修改 $ENV_FILE 中的配置"
-    else
-        log_info "环境配置文件已存在，跳过创建"
-    fi
+    local images=(
+        "langgenius/dify-api:0.9.0"
+        "postgres:15-alpine"
+        "redis:7-alpine"
+        "semitechnologies/weaviate:1.19.0"
+        "langgenius/dify-sandbox:0.2.1"
+    )
+
+    for image in "${images[@]}"; do
+        log_info "拉取镜像: $image"
+        docker pull "$image"
+    done
+
+    log_success "官方镜像拉取完成"
 }
 
-# 生成随机密钥
-generate_secrets() {
-    log_info "生成安全密钥..."
-
-    # 生成随机密钥
-    local secret_key=$(openssl rand -hex 32)
-    local encryption_key=$(openssl rand -hex 32)
-
-    # 更新 .env 文件中的密钥
-    if [[ -f "$ENV_FILE" ]]; then
-        sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$secret_key/" "$ENV_FILE"
-        sed -i "s/^ENCRYPTION_KEY=.*/ENCRYPTION_KEY=$encryption_key/" "$ENV_FILE"
-        log_success "安全密钥已更新"
-    fi
-}
-
-# 构建镜像
-build_images() {
-    log_info "构建 Docker 镜像..."
+# 构建品牌前端镜像
+build_brand_image() {
+    log_info "构建品牌前端镜像..."
 
     cd "$DEPLOY_DIR"
 
-    # 使用 docker compose 或 docker-compose
     if docker compose version &> /dev/null; then
-        docker compose build --no-cache
+        docker compose -f "$COMPOSE_FILE" build web
     else
-        docker-compose build --no-cache
+        docker-compose -f "$COMPOSE_FILE" build web
     fi
 
-    log_success "Docker 镜像构建完成"
+    log_success "品牌前端镜像构建完成"
+}
+
+# 停止现有服务
+stop_existing_services() {
+    log_info "停止现有服务..."
+
+    cd "$DEPLOY_DIR"
+
+    # 停止所有可能相关的服务
+    docker compose -f docker-compose-simple.yaml down 2>/dev/null || true
+    docker compose -f docker-compose.yaml down 2>/dev/null || true
+    docker compose -f docker-compose-brand.yaml down 2>/dev/null || true
+
+    log_success "现有服务已停止"
 }
 
 # 启动服务
@@ -169,36 +278,13 @@ start_services() {
 
     cd "$DEPLOY_DIR"
 
-    # 使用 docker compose 或 docker-compose
     if docker compose version &> /dev/null; then
-        docker compose up -d
+        docker compose -f "$COMPOSE_FILE" up -d
     else
-        docker-compose up -d
+        docker-compose -f "$COMPOSE_FILE" up -d
     fi
 
     log_success "Dify 服务启动完成"
-}
-
-# 等待服务就绪
-wait_for_services() {
-    log_info "等待服务启动..."
-
-    local max_attempts=30
-    local attempt=0
-
-    while [[ $attempt -lt $max_attempts ]]; do
-        if curl -f http://localhost/health &> /dev/null; then
-            log_success "服务已就绪"
-            return 0
-        fi
-
-        attempt=$((attempt + 1))
-        echo -n "."
-        sleep 2
-    done
-
-    log_error "服务启动超时"
-    return 1
 }
 
 # 检查服务状态
@@ -207,75 +293,94 @@ check_services() {
 
     cd "$DEPLOY_DIR"
 
-    # 使用 docker compose 或 docker-compose
     if docker compose version &> /dev/null; then
-        docker compose ps
+        docker compose -f "$COMPOSE_FILE" ps
     else
-        docker-compose ps
+        docker-compose -f "$COMPOSE_FILE" ps
+    fi
+
+    echo
+    log_info "测试基本连接..."
+
+    # 测试 Redis
+    if docker compose -f "$COMPOSE_FILE" exec -T redis redis-cli ping &>/dev/null; then
+        log_success "✓ Redis 连接正常"
+    else
+        log_error "✗ Redis 连接失败"
+    fi
+
+    # 测试 PostgreSQL
+    if docker compose -f "$COMPOSE_FILE" exec -T db pg_isready -U postgres &>/dev/null; then
+        log_success "✓ PostgreSQL 连接正常"
+    else
+        log_error "✗ PostgreSQL 连接失败"
+    fi
+
+    # 测试 Web
+    local server_ip="$1"
+    if curl -f "http://$server_ip:3000" &>/dev/null; then
+        log_success "✓ Web 服务访问正常"
+    else
+        log_warning "✗ Web 服务可能还在启动"
+    fi
+
+    # 测试 API
+    if curl -f "http://$server_ip:5001/health" &>/dev/null; then
+        log_success "✓ API 服务访问正常"
+    else
+        log_warning "✗ API 服务可能还在启动"
     fi
 }
 
 # 显示访问信息
 show_access_info() {
-    log_success "部署完成！"
+    local server_ip="$1"
+
+    log_success "最终部署完成！"
     echo
     echo "访问信息:"
-    echo "  Web 界面: http://localhost"
-    echo "  API 文档: http://localhost/docs"
-    echo "  健康检查: http://localhost/health"
+    echo "  Web 界面: http://$server_ip:3000"
+    echo "  API 服务: http://$server_ip:5001"
+    echo "  安装页面: http://$server_ip:3000/install"
     echo
     echo "管理命令:"
+    echo "  查看状态: cd $DEPLOY_DIR && docker compose ps"
     echo "  查看日志: cd $DEPLOY_DIR && docker compose logs -f"
     echo "  停止服务: cd $DEPLOY_DIR && docker compose down"
     echo "  重启服务: cd $DEPLOY_DIR && docker compose restart"
-    echo "  更新服务: cd $DEPLOY_DIR && docker compose pull && docker compose up -d"
     echo
-    echo "配置文件位置: $ENV_FILE"
+    echo "配置文件位置: $COMPOSE_FILE, $ENV_FILE"
     echo "数据目录: $PROJECT_DIR/volumes"
     echo
-    log_warning "请确保已配置 .env 文件中的 API 密钥和其他必要设置"
-}
-
-# 清理函数
-cleanup() {
-    log_info "清理资源..."
-    cd "$DEPLOY_DIR"
-
-    # 使用 docker compose 或 docker-compose
-    if docker compose version &> /dev/null; then
-        docker compose down --remove-orphans
-    else
-        docker-compose down --remove-orphans
-    fi
-
-    log_success "清理完成"
+    log_warning "如需修改IP地址，请重新运行 ./deploy-final.sh [IP地址]"
+    log_warning "请确保已配置 $ENV_FILE 文件中的 OPENAI_API_KEY"
 }
 
 # 显示帮助信息
 show_help() {
-    echo "Dify AlmaLinux 9 部署脚本"
+    echo "Dify AlmaLinux 9 最终部署脚本（动态IP替换）"
     echo
-    echo "用法: $0 [选项]"
+    echo "用法: $0 [选项] [服务器IP]"
     echo
     echo "选项:"
     echo "  -h, --help     显示帮助信息"
-    echo "  -c, --clean    清理现有服务"
-    echo "  -b, --build    强制重新构建镜像"
-    echo "  -s, --skip-build 跳过镜像构建"
-    echo "  -e, --env-only 仅设置环境配置"
+    echo "  -i, --ip       指定服务器IP地址"
+    echo "  -p, --pull     仅拉取镜像"
+    echo "  -b, --build    仅构建品牌前端"
+    echo "  -e, --env-only 仅生成配置文件"
     echo
     echo "示例:"
-    echo "  $0                # 完整部署"
-    echo "  $0 -c             # 清理服务"
-    echo "  $0 -b             # 重新构建并部署"
-    echo "  $0 -e             # 仅设置环境"
+    echo "  $0                    # 自动检测IP并完整部署"
+    echo "  $0 10.81.97.39        # 使用指定IP部署"
+    echo "  $0 -i 192.168.1.100   # 使用指定IP部署"
+    echo "  $0 -e                 # 仅生成配置文件"
 }
 
 # 主函数
 main() {
-    local clean_only=false
-    local force_build=false
-    local skip_build=false
+    local custom_ip=""
+    local pull_only=false
+    local build_only=false
     local env_only=false
 
     # 解析命令行参数
@@ -285,89 +390,98 @@ main() {
                 show_help
                 exit 0
                 ;;
-            -c|--clean)
-                clean_only=true
+            -i|--ip)
+                custom_ip="$2"
+                shift 2
+                ;;
+            -p|--pull)
+                pull_only=true
                 shift
                 ;;
             -b|--build)
-                force_build=true
-                shift
-                ;;
-            -s|--skip-build)
-                skip_build=true
+                build_only=true
                 shift
                 ;;
             -e|--env-only)
                 env_only=true
                 shift
                 ;;
-            *)
+            -*)
                 log_error "未知选项: $1"
                 show_help
                 exit 1
+                ;;
+            *)
+                # 如果是IP地址格式，作为自定义IP
+                if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    custom_ip="$1"
+                else
+                    log_error "无效的IP地址: $1"
+                    exit 1
+                fi
+                shift
                 ;;
         esac
     done
 
     # 显示开始信息
     echo "=========================================================="
-    echo "    Dify AlmaLinux 9 快速部署脚本"
+    echo "    Dify AlmaLinux 9 最终部署（动态IP替换）"
     echo "=========================================================="
     echo
 
-    # 执行清理
-    if [[ "$clean_only" == true ]]; then
-        cleanup
+    # 确定服务器IP
+    local server_ip="$custom_ip"
+    if [[ -z "$server_ip" ]]; then
+        log_info "自动检测服务器IP地址..."
+        server_ip=$(detect_server_ip)
+        if [[ "$server_ip" == "localhost" ]]; then
+            log_warning "无法自动检测IP地址，使用localhost"
+        fi
+    fi
+
+    log_info "使用服务器IP: $server_ip"
+
+    # 仅拉取镜像
+    if [[ "$pull_only" == true ]]; then
+        check_root
+        check_system
+        pull_official_images
         exit 0
     fi
 
-    # 仅设置环境
+    # 仅构建前端
+    if [[ "$build_only" == true ]]; then
+        check_root
+        check_system
+        generate_compose_file "$server_ip" "$COMPOSE_FILE"
+        generate_env_file "$server_ip"
+        build_brand_image
+        exit 0
+    fi
+
+    # 仅生成配置文件
     if [[ "$env_only" == true ]]; then
         check_root
         create_directories
-        setup_environment
-        generate_secrets
-        show_access_info
+        generate_compose_file "$server_ip" "$COMPOSE_FILE"
+        generate_env_file "$server_ip"
+        log_success "配置文件已生成: $COMPOSE_FILE, $ENV_FILE"
         exit 0
     fi
 
     # 完整部署流程
     check_root
     check_system
-    install_dependencies
     create_directories
-    setup_environment
-    generate_secrets
-
-    if [[ "$skip_build" != true ]]; then
-        if [[ "$force_build" == true ]]; then
-            build_images
-        else
-            # 检查镜像是否存在
-            if ! docker images | grep -q "almalinux9"; then
-                build_images
-            else
-                log_info "Docker 镜像已存在，跳过构建 (使用 -b 强制重新构建)"
-            fi
-        fi
-    fi
-
+    generate_compose_file "$server_ip" "$COMPOSE_FILE"
+    generate_env_file "$server_ip"
+    stop_existing_services
+    pull_official_images
+    build_brand_image
     start_services
-
-    # 等待服务就绪
-    if wait_for_services; then
-        check_services
-        show_access_info
-    else
-        log_error "部署失败，请检查日志"
-        cd "$DEPLOY_DIR"
-        if docker compose version &> /dev/null; then
-            docker compose logs
-        else
-            docker-compose logs
-        fi
-        exit 1
-    fi
+    check_services "$server_ip"
+    show_access_info "$server_ip"
 }
 
 # 捕获中断信号
