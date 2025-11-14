@@ -301,7 +301,7 @@ const translation = {
     sendInvite: 'Send Invite',
     invitedAsRole: 'Invited as {{role}} user',
     invitationSent: 'Invitation sent',
-    invitationSentTip: 'Invitation sent, and they can sign in to Dify to access your team data.',
+    invitationSentTip: 'Invitation sent, and they can sign in to TechBridge to access your team data.',
     invitationLink: 'Invitation Link',
     failedInvitationEmails: 'Below users were not invited successfully',
     ok: 'OK',
@@ -614,8 +614,8 @@ const translation = {
   about: {
     changeLog: 'Changelog',
     updateNow: 'Update now',
-    nowAvailable: 'Dify {{version}} is now available.',
-    latestAvailable: 'Dify {{version}} is the latest version available.',
+    nowAvailable: 'TechBridge {{version}} is now available.',
+    latestAvailable: 'TechBridge {{version}} is the latest version available.',
   },
   appMenus: {
     overview: 'Monitoring',

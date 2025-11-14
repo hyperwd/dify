@@ -1,0 +1,79 @@
+# AlmaLinux 9 optimized Dockerfile for Dify Web
+FROM almalinux:9 AS base
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Set UTF-8 locale
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Install Node.js 22
+RUN dnf update -y \
+    && dnf install -y curl \
+    && curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - \
+    && dnf install -y nodejs \
+    && dnf clean all
+
+# Enable corepack
+RUN corepack enable
+
+# Set Node.js environment
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_ENV=production
+ENV EDITION=SELF_HOSTED
+ENV DEPLOY_ENV=PRODUCTION
+ENV CONSOLE_API_URL=http://127.0.0.1:5001
+ENV APP_API_URL=http://127.0.0.1:5001
+ENV MARKETPLACE_API_URL=https://marketplace.dify.ai
+ENV MARKETPLACE_URL=https://marketplace.dify.ai
+ENV NEXT_PUBLIC_BASE_PATH=
+
+WORKDIR /app/web
+
+# Install packages stage
+FROM base AS packages
+
+COPY package.json .
+COPY pnpm-lock.yaml .
+
+# Use packageManager from package.json
+RUN corepack install
+
+RUN pnpm install --frozen-lockfile
+
+# Build stage
+FROM base AS builder
+WORKDIR /app/web
+
+COPY --from=packages /app/web/ ./
+COPY . .
+
+# Set Node.js options for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+RUN pnpm build:docker
+
+# Production stage
+FROM base AS production
+
+EXPOSE 3000
+
+# Copy built application
+COPY --from=builder --chown=node:node /app/web/.next/standalone ./
+COPY --from=builder --chown=node:node /app/web/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/web/public ./public
+
+# Create non-root user
+RUN useradd -m -u 1000 -s /bin/bash node \
+    && chown -R node:node /app
+
+USER node
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:3000 || exit 1
+
+CMD ["node", "server.js"]

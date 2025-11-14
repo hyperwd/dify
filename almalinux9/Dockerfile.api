@@ -1,0 +1,76 @@
+# AlmaLinux 9 optimized Dockerfile for Dify API
+FROM almalinux:9 AS base
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Set UTF-8 locale
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+
+WORKDIR /app/api
+
+# Install development tools and Python
+RUN dnf update -y \
+    && dnf groupinstall -y "Development Tools" \
+    && dnf install -y \
+        python3 \
+        python3-pip \
+        python3-devel \
+        gcc \
+        gcc-c++ \
+        # for building gmpy2
+        mpfr-devel \
+        libmpc-devel \
+        # other dependencies
+        libffi-devel \
+        openssl-devel \
+        sqlite-devel \
+        wget \
+        curl \
+        git \
+    && dnf clean all
+
+# Create symlink for python
+RUN alternatives --set python3 /usr/bin/python3.12 || true
+
+# Install uv
+ENV UV_VERSION=0.8.9
+RUN pip3 install --no-cache-dir uv==${UV_VERSION}
+
+# Production stage
+FROM base AS production
+
+ENV FLASK_APP=app.py
+ENV EDITION=SELF_HOSTED
+ENV DEPLOY_ENV=PRODUCTION
+ENV CONSOLE_API_URL=http://127.0.0.1:5001
+ENV CONSOLE_WEB_URL=http://127.0.0.1:3000
+ENV SERVICE_API_URL=http://127.0.0.1:5001
+ENV APP_WEB_URL=http://127.0.0.1:3000
+
+EXPOSE 5001
+
+# Install Python dependencies
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev
+
+# Copy application code
+COPY . .
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Change ownership to non-root user (if needed)
+RUN useradd -m -u 1000 -s /bin/bash dify \
+    && chown -R dify:dify /app
+
+USER dify
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1
+
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5001", "--worker-class", "gevent", "--workers", "1", "--timeout", "360", "--max-requests", "1000", "--max-requests-jitter", "50", "app:app"]
