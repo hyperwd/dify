@@ -4,8 +4,8 @@ services:
   # Dify API Service
   api:
     build:
-      context: ../
-      dockerfile: almalinux9/Dockerfile.api
+      context: ../api
+      dockerfile: ../almalinux9/Dockerfile.api
     container_name: dify-api
     restart: unless-stopped
     environment:
@@ -95,8 +95,8 @@ services:
   # Dify Worker Service
   worker:
     build:
-      context: ../
-      dockerfile: almalinux9/Dockerfile.api
+      context: ../api
+      dockerfile: ../almalinux9/Dockerfile.api
     container_name: dify-worker
     restart: unless-stopped
     environment:
@@ -137,8 +137,8 @@ services:
   # Dify Web Service
   web:
     build:
-      context: ../
-      dockerfile: almalinux9/Dockerfile.web
+      context: ../web
+      dockerfile: ../almalinux9/Dockerfile.web
     container_name: dify-web
     restart: unless-stopped
     environment:
