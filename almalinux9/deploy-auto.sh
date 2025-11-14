@@ -39,8 +39,6 @@ ENV_FILE="$DEPLOY_DIR/.env"
 
 # 自动获取服务器IP
 detect_server_ip() {
-    log_info "自动检测服务器IP地址..."
-
     # 尝试多种方法获取IP地址
     local ip=""
 
@@ -51,17 +49,19 @@ detect_server_ip() {
 
     # 方法2: 使用ip route
     if [[ -z "$ip" ]] && command -v ip >/dev/null 2>&1; then
-        ip=$(ip route get 1.1.1.1 | awk '{print $7}' | head -1)
+        ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -1)
     fi
 
-    # 方法3: 使用默认网关
+    # 方法3: 使用默认网关接口
     if [[ -z "$ip" ]]; then
-        ip=$(ip route | grep default | awk '{print $5}')
+        local interface=$(ip route | grep default | awk '{print $5}' | head -1)
+        if [[ -n "$interface" ]]; then
+            ip=$(ip addr show "$interface" | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1 | head -1)
+        fi
     fi
 
     # 方法4: 回退到localhost（仅用于测试）
     if [[ -z "$ip" ]]; then
-        log_warning "无法自动检测IP地址，使用localhost"
         ip="localhost"
     fi
 
@@ -368,7 +368,11 @@ main() {
     # 确定服务器IP
     local server_ip="$custom_ip"
     if [[ -z "$server_ip" ]]; then
+        log_info "自动检测服务器IP地址..."
         server_ip=$(detect_server_ip)
+        if [[ "$server_ip" == "localhost" ]]; then
+            log_warning "无法自动检测IP地址，使用localhost"
+        fi
     fi
 
     log_info "使用服务器IP: $server_ip"
