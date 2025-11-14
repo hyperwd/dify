@@ -10,7 +10,7 @@ import './styles/globals.css'
 import './styles/markdown.scss'
 import GlobalPublicStoreProvider from '@/context/global-public-context'
 import { DatasetAttr } from '@/types/feature'
-import { Instrument_Serif } from 'next/font/google'
+// import { Instrument_Serif } from 'next/font/google'
 import cn from '@/utils/classnames'
 
 export const viewport: Viewport = {
@@ -21,12 +21,16 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-const instrumentSerif = Instrument_Serif({
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
+// 使用本地字体替代 Google 字体，避免网络依赖
+const instrumentSerif = {
+  style: {
+    fontFamily: 'Georgia, "Times New Roman", serif',
+    fontWeight: 400,
+    fontStyle: 'normal',
+  },
+  className: '',
   variable: '--font-instrument-serif',
-})
+}
 
 const LocaleLayout = async ({
   children,

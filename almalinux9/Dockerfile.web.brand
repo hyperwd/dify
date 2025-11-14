@@ -43,6 +43,13 @@ COPY . .
 # Set Node.js options for build
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# 禁用 Next.js 遥测
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# 设置超时和网络相关变量
+ENV NODE_ENV=production
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 RUN pnpm build:docker
 
 # production stage - 基于官方镜像
