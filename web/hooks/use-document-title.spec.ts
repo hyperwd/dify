@@ -61,20 +61,20 @@ describe('use default branding', () => {
   })
   /**
    * Test title format with page title and default branding
-   * Format: "[page] - Dify"
+   * Format: "[page] - Coop"
    */
   it('document title should be test-Dify if set title', () => {
     renderHook(() => useDocumentTitle('test'))
-    expect(document.title).toBe('test - Dify')
+    expect(document.title).toBe('test - Coop')
   })
 
   /**
    * Test title with only default branding (no page title)
-   * Format: "Dify"
+   * Format: "Coop"
    */
-  it('document title should be Dify if not set title', () => {
+  it('document title should be Coop if not set title', () => {
     renderHook(() => useDocumentTitle(''))
-    expect(document.title).toBe('Dify')
+    expect(document.title).toBe('Coop')
   })
 })
 

@@ -10,7 +10,7 @@ import './styles/globals.css'
 import './styles/markdown.scss'
 import GlobalPublicStoreProvider from '@/context/global-public-context'
 import { DatasetAttr } from '@/types/feature'
-import { Instrument_Serif } from 'next/font/google'
+// import { Instrument_Serif } from 'next/font/google'
 import cn from '@/utils/classnames'
 
 export const viewport: Viewport = {
@@ -21,12 +21,12 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-const instrumentSerif = Instrument_Serif({
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-instrument-serif',
-})
+// 使用系统字体替代 Google Fonts
+const instrumentSerif = {
+  className: 'font-serif',
+  style: { fontFamily: 'Georgia, serif' },
+  variable: '--font-instrument-serif'
+}
 
 const LocaleLayout = async ({
   children,
@@ -74,7 +74,7 @@ const LocaleLayout = async ({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Dify" />
+        <meta name="apple-mobile-web-app-title" content="Coop" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon-192x192.png" />

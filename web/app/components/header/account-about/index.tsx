@@ -45,7 +45,7 @@ export default function AccountAbout({
 
           <div className='text-center text-xs font-normal text-text-tertiary'>Version {langGeniusVersionInfo?.current_version}</div>
           <div className='flex flex-col items-center gap-2 text-center text-xs font-normal text-text-secondary'>
-            <div>© {dayjs().year()} LangGenius, Inc., Contributors.</div>
+            <div>© {dayjs().year()} Coop, Inc., Contributors.</div>
             <div className='text-text-accent'>
               {
                 IS_CE_EDITION

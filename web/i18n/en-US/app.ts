@@ -32,12 +32,11 @@ const translation = {
     'Deleting the app is irreversible. Users will no longer be able to access your app, and all prompt configurations and logs will be permanently deleted.',
   appDeleted: 'App deleted',
   appDeleteFailed: 'Failed to delete app',
-  join: 'Join the community',
-  communityIntro:
-    'Discuss with team members, contributors and developers on different channels.',
+  join: '',
+  communityIntro: '',
   roadmap: 'See our roadmap',
   newApp: {
-    learnMore: 'Learn more',
+    learnMore: '',
     startFromBlank: 'Create from Blank',
     startFromTemplate: 'Create from Template',
     foundResult: '{{count}} Result',
@@ -181,7 +180,7 @@ const translation = {
     },
     aliyun: {
       title: 'Cloud Monitor',
-      description: 'The fully-managed and maintenance-free observability platform provided by Alibaba Cloud, enables out-of-the-box monitoring, tracing, and evaluation of Dify applications.',
+      description: 'The fully-managed and maintenance-free observability platform provided by Alibaba Cloud, enables out-of-the-box monitoring, tracing, and evaluation of Coop applications.',
     },
     tencent: {
       title: 'Tencent APM',
@@ -306,9 +305,9 @@ const translation = {
       languageChangeDesc: 'Change UI language',
       slashDesc: 'Execute commands (type / to see all available commands)',
       accountDesc: 'Navigate to account page',
-      communityDesc: 'Open Discord community',
+      communityDesc: '',
       docDesc: 'Open help documentation',
-      feedbackDesc: 'Open community feedback discussions',
+      feedbackDesc: '',
     },
     emptyState: {
       noAppsFound: 'No apps found',

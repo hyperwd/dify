@@ -301,7 +301,7 @@ const translation = {
     sendInvite: 'Send Invite',
     invitedAsRole: 'Invited as {{role}} user',
     invitationSent: 'Invitation sent',
-    invitationSentTip: 'Invitation sent, and they can sign in to Dify to access your team data.',
+    invitationSentTip: 'Invitation sent, and they can sign in to Coop to access your team data.',
     invitationLink: 'Invitation Link',
     failedInvitationEmails: 'Below users were not invited successfully',
     ok: 'OK',
@@ -376,7 +376,7 @@ const translation = {
       openaiHosted: 'Hosted OpenAI',
       onTrial: 'ON TRIAL',
       exhausted: 'QUOTA EXHAUSTED',
-      desc: 'The OpenAI hosting service provided by Dify allows you to use models such as GPT-3.5. Before your trial quota is used up, you need to set up other model providers.',
+      desc: 'The OpenAI hosting service provided by Coop allows you to use models such as GPT-3.5. Before your trial quota is used up, you need to set up other model providers.',
       callTimes: 'Call times',
       usedUp: 'Trial quota used up. Add own Model Provider.',
       useYourModel: 'Currently using own Model Provider.',
@@ -584,7 +584,7 @@ const translation = {
     },
   },
   apiBasedExtension: {
-    title: 'API extensions provide centralized API management, simplifying configuration for easy use across Dify\'s applications.',
+    title: 'API extensions provide centralized API management, simplifying configuration for easy use across Coop\'s applications.',
     link: 'Learn how to develop your own API Extension.',
     add: 'Add API Extension',
     selector: {
@@ -614,8 +614,8 @@ const translation = {
   about: {
     changeLog: 'Changelog',
     updateNow: 'Update now',
-    nowAvailable: 'Dify {{version}} is now available.',
-    latestAvailable: 'Dify {{version}} is the latest version available.',
+    nowAvailable: 'Coop {{version}} is now available.',
+    latestAvailable: 'Coop {{version}} is the latest version available.',
   },
   appMenus: {
     overview: 'Monitoring',

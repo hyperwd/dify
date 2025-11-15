@@ -17,7 +17,6 @@ import Button from '@/app/components/base/button'
 import { fetchInitValidateStatus, fetchSetupStatus, login, setup } from '@/service/common'
 import type { InitValidateStatusResponse, SetupStatusResponse } from '@/models/common'
 import useDocumentTitle from '@/hooks/use-document-title'
-import { useDocLink } from '@/context/i18n'
 import { validPassword } from '@/config'
 
 const accountFormSchema = z.object({
@@ -36,7 +35,6 @@ type AccountFormValues = z.infer<typeof accountFormSchema>
 const InstallForm = () => {
   useDocumentTitle('')
   const { t, i18n } = useTranslation()
-  const docLink = useDocLink()
   const router = useRouter()
   const [showPassword, setShowPassword] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
@@ -188,15 +186,6 @@ const InstallForm = () => {
                 </Button>
               </div>
             </form>
-            <div className="mt-2 block w-full text-xs text-text-secondary">
-              {t('login.license.tip')}
-              &nbsp;
-              <Link
-                className='text-text-accent'
-                target='_blank' rel='noopener noreferrer'
-                href={docLink('/policies/open-source')}
-              >{t('login.license.link')}</Link>
-            </div>
           </div>
         </div>
       </>
