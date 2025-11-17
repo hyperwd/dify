@@ -650,8 +650,6 @@ services:
     networks:
       - ssrf_proxy_network
       - default
-    extra_hosts:
-      - "coop.io:10.81.97.39"
 
   # worker service
   # The Celery worker for processing all queues (dataset, workflow, mail, etc.)
@@ -727,8 +725,6 @@ services:
       ENABLE_WEBSITE_FIRECRAWL: ${ENABLE_WEBSITE_FIRECRAWL:-true}
       ENABLE_WEBSITE_WATERCRAWL: ${ENABLE_WEBSITE_WATERCRAWL:-true}
       NEXT_PUBLIC_ENABLE_SINGLE_DOLLAR_LATEX: ${NEXT_PUBLIC_ENABLE_SINGLE_DOLLAR_LATEX:-false}
-    extra_hosts:
-      - "coop.io:10.81.97.39"
 
   # The postgres database.
   db:
