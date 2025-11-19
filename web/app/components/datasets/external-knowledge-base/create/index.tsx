@@ -11,7 +11,6 @@ import InfoPanel from './InfoPanel'
 import type { CreateKnowledgeBaseReq } from './declarations'
 import Divider from '@/app/components/base/divider'
 import Button from '@/app/components/base/button'
-import { useDocLink } from '@/context/i18n'
 
 type ExternalKnowledgeBaseCreateProps = {
   onConnect: (formValue: CreateKnowledgeBaseReq) => void
@@ -20,7 +19,6 @@ type ExternalKnowledgeBaseCreateProps = {
 
 const ExternalKnowledgeBaseCreate: React.FC<ExternalKnowledgeBaseCreateProps> = ({ onConnect, loading }) => {
   const { t } = useTranslation()
-  const docLink = useDocLink()
   const router = useRouter()
   const [formData, setFormData] = useState<CreateKnowledgeBaseReq>({
     name: '',
@@ -57,15 +55,6 @@ const ExternalKnowledgeBaseCreate: React.FC<ExternalKnowledgeBaseCreateProps> = 
           <div className='flex w-full max-w-[640px] grow flex-col items-center gap-4 pb-8 pt-6'>
             <div className='relative flex flex-col items-center gap-[2px] self-stretch py-2'>
               <div className='system-xl-semibold grow self-stretch text-text-primary'>{t('dataset.connectDataset')}</div>
-              <p className='system-sm-regular text-text-tertiary'>
-                <span>{t('dataset.connectHelper.helper1')}</span>
-                <span className='system-sm-medium text-text-secondary'>{t('dataset.connectHelper.helper2')}</span>
-                <span>{t('dataset.connectHelper.helper3')}</span>
-                <a className='system-sm-regular self-stretch text-text-accent' href={docLink('/guides/knowledge-base/connect-external-knowledge-base')} target='_blank' rel="noopener noreferrer">
-                  {t('dataset.connectHelper.helper4')}
-                </a>
-                <span>{t('dataset.connectHelper.helper5')} </span>
-              </p>
               <Button
                 className='absolute left-[-44px] top-1 flex h-8 w-8 items-center justify-center rounded-full p-2'
                 variant='tertiary'
