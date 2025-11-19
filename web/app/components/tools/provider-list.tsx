@@ -1,8 +1,7 @@
 'use client'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Collection } from './types'
-import Marketplace from './marketplace'
 import cn from '@/utils/classnames'
 import { useTabSearchParams } from '@/hooks/use-tab-searchparams'
 import TabSliderNew from '@/app/components/base/tab-slider-new'
@@ -18,9 +17,7 @@ import PluginDetailPanel from '@/app/components/plugins/plugin-detail-panel'
 import MCPList from './mcp'
 import { useAllToolProviders } from '@/service/use-tools'
 import { useCheckInstalled, useInvalidateInstalledPluginList } from '@/service/use-plugins'
-import { useGlobalPublicStore } from '@/context/global-public-context'
 import { ToolTypeEnum } from '../workflow/block-selector/types'
-import { useMarketplace } from './marketplace/hooks'
 import { useTags } from '@/app/components/plugins/hooks'
 
 const getToolType = (type: string) => {
@@ -42,8 +39,6 @@ const ProviderList = () => {
   // searchParams.get('category') === 'workflow'
   const { t } = useTranslation()
   const { getTagLabel } = useTags()
-  const { enable_marketplace } = useGlobalPublicStore(s => s.systemFeatures)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   const [activeTab, setActiveTab] = useTabSearchParams({
     defaultTab: 'builtin',
@@ -88,48 +83,10 @@ const ProviderList = () => {
     return checkedInstalledData?.plugins?.[0]
   }, [checkedInstalledData])
 
-  const toolListTailRef = useRef<HTMLDivElement>(null)
-  const showMarketplacePanel = useCallback(() => {
-    containerRef.current?.scrollTo({
-      top: toolListTailRef.current
-        ? toolListTailRef.current?.offsetTop - 80
-        : 0,
-      behavior: 'smooth',
-    })
-  }, [toolListTailRef])
-
-  const marketplaceContext = useMarketplace(keywords, tagFilterValue)
-  const {
-    handleScroll,
-  } = marketplaceContext
-
-  const [isMarketplaceArrowVisible, setIsMarketplaceArrowVisible] = useState(true)
-  const onContainerScroll = useMemo(() => {
-    return (e: Event) => {
-      handleScroll(e)
-      if (containerRef.current && toolListTailRef.current)
-        setIsMarketplaceArrowVisible(containerRef.current.scrollTop < (toolListTailRef.current?.offsetTop - 80))
-    }
-  }, [handleScroll, containerRef, toolListTailRef, setIsMarketplaceArrowVisible])
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (container)
-      container.addEventListener('scroll', onContainerScroll)
-
-    return () => {
-      if (container)
-        container.removeEventListener('scroll', onContainerScroll)
-    }
-  }, [onContainerScroll])
-
   return (
     <>
       <div className='relative flex h-0 shrink-0 grow overflow-hidden'>
-        <div
-          ref={containerRef}
-          className='relative flex grow flex-col overflow-y-auto bg-background-body'
-        >
+        <div className='relative flex grow flex-col overflow-y-auto bg-background-body'>
           <div className={cn(
             'sticky top-0 z-10 flex flex-wrap items-center justify-between gap-y-2 bg-background-body px-12 pb-2 pt-4 leading-[56px]',
             currentProviderId && 'pr-6',
@@ -193,16 +150,6 @@ const ProviderList = () => {
           )}
           {!filteredCollectionList.length && activeTab === 'builtin' && (
             <Empty lightCard text={t('tools.noTools')} className='h-[224px] shrink-0 px-12' />
-          )}
-          <div ref={toolListTailRef} />
-          {enable_marketplace && activeTab === 'builtin' && (
-            <Marketplace
-              searchPluginText={keywords}
-              filterPluginTags={tagFilterValue}
-              isMarketplaceArrowVisible={isMarketplaceArrowVisible}
-              showMarketplacePanel={showMarketplacePanel}
-              marketplaceContext={marketplaceContext}
-            />
           )}
           {activeTab === 'mcp' && (
             <MCPList searchText={keywords} />
