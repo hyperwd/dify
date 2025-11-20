@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { RiCloseLine, RiInformation2Fill } from '@remixicon/react'
+import { RiCloseLine } from '@remixicon/react'
 import DialogWrapper from '@/app/components/base/features/new-feature-panel/dialog-wrapper'
 import { useDefaultModel } from '@/app/components/header/account-setting/model-provider-page/hooks'
 import { ModelTypeEnum } from '@/app/components/header/account-setting/model-provider-page/declarations'
@@ -18,7 +18,6 @@ import Moderation from '@/app/components/base/features/new-feature-panel/moderat
 import AnnotationReply from '@/app/components/base/features/new-feature-panel/annotation-reply'
 import type { PromptVariable } from '@/models/debug'
 import type { InputVar } from '@/app/components/workflow/types'
-import { useDocLink } from '@/context/i18n'
 
 type Props = {
   show: boolean
@@ -46,7 +45,6 @@ const NewFeaturePanel = ({
   onAutoAddPromptVariable,
 }: Props) => {
   const { t } = useTranslation()
-  const docLink = useDocLink()
   const { data: speech2textDefaultModel } = useDefaultModel(ModelTypeEnum.speech2text)
   const { data: text2speechDefaultModel } = useDefaultModel(ModelTypeEnum.tts)
 
@@ -67,24 +65,6 @@ const NewFeaturePanel = ({
         </div>
         {/* list */}
         <div className='grow basis-0 overflow-y-auto px-4 pb-4'>
-          {showFileUpload && (
-            <div className='relative mb-1 rounded-xl border border-components-panel-border p-2 shadow-xs'>
-              <div className='absolute left-0 top-0 h-full w-full rounded-xl opacity-40' style={{ background: 'linear-gradient(92deg, rgba(11, 165, 236, 0.25) 18.12%, rgba(255, 255, 255, 0.00) 167.31%)' }}></div>
-              <div className='relative flex h-full w-full items-start'>
-                <div className='mr-0.5 shrink-0 p-0.5'>
-                  <RiInformation2Fill className='h-5 w-5 text-text-accent' />
-                </div>
-                <div className='system-xs-medium p-1 text-text-primary'>
-                  <span>{isChatMode ? t('workflow.common.fileUploadTip') : t('workflow.common.ImageUploadLegacyTip')}</span>
-                  <a
-                    className='text-text-accent'
-                    href={docLink('/guides/workflow/bulletin')}
-                    target='_blank' rel='noopener noreferrer'
-                  >{t('workflow.common.featuresDocLink')}</a>
-                </div>
-              </div>
-            </div>
-          )}
           {!isChatMode && !inWorkflow && (
             <MoreLikeThis disabled={disabled} onChange={onChange} />
           )}

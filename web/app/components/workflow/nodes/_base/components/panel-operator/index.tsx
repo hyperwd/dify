@@ -20,7 +20,6 @@ type PanelOperatorProps = {
   offset?: OffsetOptions
   onOpenChange?: (open: boolean) => void
   inNode?: boolean
-  showHelpLink?: boolean
 }
 const PanelOperator = ({
   id,
@@ -31,7 +30,6 @@ const PanelOperator = ({
     crossAxis: 53,
   },
   onOpenChange,
-  showHelpLink = true,
 }: PanelOperatorProps) => {
   const [open, setOpen] = useState(false)
 
@@ -66,7 +64,6 @@ const PanelOperator = ({
           id={id}
           data={data}
           onClosePopup={() => setOpen(false)}
-          showHelpLink={showHelpLink}
         />
       </PortalToFollowElemContent>
     </PortalToFollowElem>

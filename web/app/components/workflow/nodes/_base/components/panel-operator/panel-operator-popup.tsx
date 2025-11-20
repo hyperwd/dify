@@ -21,13 +21,11 @@ type PanelOperatorPopupProps = {
   id: string
   data: Node['data']
   onClosePopup: () => void
-  showHelpLink?: boolean
 }
 const PanelOperatorPopup = ({
   id,
   data,
   onClosePopup,
-  showHelpLink,
 }: PanelOperatorPopupProps) => {
   const { t } = useTranslation()
   const edges = useEdges()
@@ -137,33 +135,6 @@ const PanelOperatorPopup = ({
           </>
         )
       }
-      {
-        showHelpLink && nodeMetaData.helpLinkUri && (
-          <>
-            <div className='p-1'>
-              <a
-                href={nodeMetaData.helpLinkUri}
-                target='_blank'
-                className='flex h-8 cursor-pointer items-center rounded-lg px-3 text-sm text-text-secondary hover:bg-state-base-hover'
-              >
-                {t('workflow.panel.helpLink')}
-              </a>
-            </div>
-            <div className='h-px bg-divider-regular'></div>
-          </>
-        )
-      }
-      <div className='p-1'>
-        <div className='px-3 py-2 text-xs text-text-tertiary'>
-          <div className='mb-1 flex h-[22px] items-center font-medium'>
-            {t('workflow.panel.about').toLocaleUpperCase()}
-          </div>
-          <div className='mb-1 leading-[18px] text-text-secondary'>{nodeMetaData.description}</div>
-          <div className='leading-[18px]'>
-            {t('workflow.panel.createdBy')} {nodeMetaData.author}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
