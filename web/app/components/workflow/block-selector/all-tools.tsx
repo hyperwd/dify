@@ -190,12 +190,8 @@ const AllTools = ({
   const hasToolsListContent = tools.length > 0 || isShowRAGRecommendations
   const hasPluginContent = enable_marketplace && notInstalledPlugins.length > 0
   const shouldShowEmptyState = hasFilter && !hasToolsListContent && !hasPluginContent
-  const shouldShowFeatured = showFeatured
-    && enable_marketplace
-    && !isInRAGPipeline
-    && activeTab === ToolTypeEnum.All
-    && !hasFilter
-  const shouldShowMarketplaceFooter = enable_marketplace && !hasFilter
+  const shouldShowFeatured = false // 禁用精选推荐功能
+  const shouldShowMarketplaceFooter = false // 禁用 Marketplace 页脚
 
   const handleRAGSelect = useCallback<OnSelectBlock>((type, pluginDefaultValue) => {
     if (!pluginDefaultValue)
