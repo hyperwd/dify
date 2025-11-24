@@ -1,5 +1,4 @@
 'use client'
-import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -126,16 +125,8 @@ export default function MailAndPasswordAuth({ isEmailSetup }: MailAndPasswordAut
     </div>
 
     <div className='mb-3'>
-      <label htmlFor="password" className="my-2 flex items-center justify-between">
+      <label htmlFor="password" className="my-2 block">
         <span className='system-md-semibold text-text-secondary'>{t('login.password')}</span>
-        <Link
-          href={`/webapp-reset-password?${searchParams.toString()}`}
-          className={`system-xs-regular ${isEmailSetup ? 'text-components-button-secondary-accent-text' : 'pointer-events-none text-components-button-secondary-accent-text-disabled'}`}
-          tabIndex={isEmailSetup ? 0 : -1}
-          aria-disabled={!isEmailSetup}
-        >
-          {t('login.forget')}
-        </Link>
       </label>
       <div className="relative mt-1">
         <Input

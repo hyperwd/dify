@@ -110,7 +110,7 @@ const translation = {
       title: '通过 OAuth 创建',
       authorization: {
         title: 'OAuth 授权',
-        description: '授权 Dify 访问您的账户',
+        description: '授权 Coop 访问您的账户',
         redirectUrl: '重定向 URL',
         redirectUrlHelp: '在您的 OAuth 应用配置中使用此 URL',
         authorizeButton: '使用 {{provider}} 授权',

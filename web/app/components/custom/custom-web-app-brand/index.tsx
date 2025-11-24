@@ -10,7 +10,7 @@ import {
   RiLoader2Line,
   RiPlayLargeLine,
 } from '@remixicon/react'
-import DifyLogo from '@/app/components/base/logo/dify-logo'
+import CoopLogo from '@/app/components/base/logo/coop-logo'
 import Switch from '@/app/components/base/switch'
 import Button from '@/app/components/base/button'
 import Divider from '@/app/components/base/divider'
@@ -252,7 +252,7 @@ const CustomWebAppBrand = () => {
                         ? <img src={systemFeatures.branding.workspace_logo} alt='logo' className='block h-5 w-auto' />
                         : webappLogo
                           ? <img src={`${webappLogo}?hash=${imgKey}`} alt='logo' className='block h-5 w-auto' />
-                          : <DifyLogo size='small' />
+                          : <CoopLogo size='small' />
                     }
                   </>
                 )}
@@ -267,7 +267,7 @@ const CustomWebAppBrand = () => {
                   <div className='h-2 w-[144px] rounded-sm bg-text-quaternary opacity-20'></div>
                 </Button>
               </div>
-              <div className='body-lg-regular flex h-[52px] w-[578px] items-center rounded-xl border border-components-chat-input-border bg-components-panel-bg-blur pl-3.5 text-text-placeholder shadow-md backdrop-blur-sm'>Talk to Dify</div>
+              <div className='body-lg-regular flex h-[52px] w-[578px] items-center rounded-xl border border-components-chat-input-border bg-components-panel-bg-blur pl-3.5 text-text-placeholder shadow-md backdrop-blur-sm'>Talk to Coop</div>
             </div>
           </div>
         </div>
@@ -314,7 +314,7 @@ const CustomWebAppBrand = () => {
                     ? <img src={systemFeatures.branding.workspace_logo} alt='logo' className='block h-5 w-auto' />
                     : webappLogo
                       ? <img src={`${webappLogo}?hash=${imgKey}`} alt='logo' className='block h-5 w-auto' />
-                      : <DifyLogo size='small' />
+                      : <CoopLogo size='small' />
                 }
               </>
             )}

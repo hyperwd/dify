@@ -30,7 +30,7 @@ const translation = {
   knowledgeNameAndIcon: '知识库名称和图标',
   knowledgeNameAndIconPlaceholder: '请输入知识库名称',
   knowledgeDescription: '知识库描述',
-  knowledgeDescriptionPlaceholder: '描述知识库中的内容。详细的描述可以让 AI 更准确地访问数据集的内容。如果为空，Dify 将使用默认的命中策略。（可选）',
+  knowledgeDescriptionPlaceholder: '描述知识库中的内容。详细的描述可以让 AI 更准确地访问数据集的内容。如果为空，Coop 将使用默认的命中策略。（可选）',
   knowledgePermissions: '权限',
   editPipelineInfo: '编辑知识流水线信息',
   pipelineNameAndIcon: '知识流水线名称和图标',
@@ -64,7 +64,7 @@ const translation = {
   details: {
     createdBy: '由 {{author}} 创建',
     structure: '文档结构',
-    structureTooltip: '文档结构决定了文档的拆分和索引方式，Dify 提供了通用、父子和问答模式，每个知识库的文档结构是唯一的。',
+    structureTooltip: '文档结构决定了文档的拆分和索引方式，Coop 提供了通用、父子和问答模式，每个知识库的文档结构是唯一的。',
   },
   testRun: {
     title: '测试运行',

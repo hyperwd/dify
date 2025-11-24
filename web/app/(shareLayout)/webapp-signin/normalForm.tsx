@@ -1,7 +1,6 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Link from 'next/link'
 import { RiContractLine, RiDoorLockLine, RiErrorWarningFill } from '@remixicon/react'
 import Loading from '@/app/components/base/loading'
 import MailAndCodeAuth from './components/mail-and-code-auth'
@@ -9,7 +8,6 @@ import MailAndPasswordAuth from './components/mail-and-password-auth'
 import SSOAuth from './components/sso-auth'
 import cn from '@/utils/classnames'
 import { LicenseStatus } from '@/types/feature'
-import { IS_CE_EDITION } from '@/config'
 import { useGlobalPublicStore } from '@/context/global-public-context'
 
 const NormalForm = () => {
@@ -95,7 +93,6 @@ const NormalForm = () => {
       <div className="mx-auto mt-8 w-full">
         <div className="mx-auto w-full">
           <h2 className="title-4xl-semi-bold text-text-primary">{t('login.pageTitle')}</h2>
-          {!systemFeatures.branding.enabled && <p className='body-md-regular mt-2 text-text-tertiary'>{t('login.welcome')}</p>}
         </div>
         <div className="relative">
           <div className="mt-6 flex flex-col gap-3">
@@ -141,31 +138,6 @@ const NormalForm = () => {
                 <div className='h-px w-full bg-gradient-to-r from-background-gradient-mask-transparent via-divider-regular to-background-gradient-mask-transparent'></div>
               </div>
             </div>
-          </>}
-          {!systemFeatures.branding.enabled && <>
-            <div className="system-xs-regular mt-2 block w-full text-text-tertiary">
-              {t('login.tosDesc')}
-              &nbsp;
-              <Link
-                className='system-xs-medium text-text-secondary hover:underline'
-                target='_blank' rel='noopener noreferrer'
-                href='https://dify.ai/terms'
-              >{t('login.tos')}</Link>
-              &nbsp;&&nbsp;
-              <Link
-                className='system-xs-medium text-text-secondary hover:underline'
-                target='_blank' rel='noopener noreferrer'
-                href='https://dify.ai/privacy'
-              >{t('login.pp')}</Link>
-            </div>
-            {IS_CE_EDITION && <div className="w-hull system-xs-regular mt-2 block text-text-tertiary">
-              {t('login.goToInit')}
-              &nbsp;
-              <Link
-                className='system-xs-medium text-text-secondary hover:underline'
-                href='/install'
-              >{t('login.setAdminAccount')}</Link>
-            </div>}
           </>}
 
         </div>

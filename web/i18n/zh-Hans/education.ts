@@ -1,7 +1,7 @@
 const translation = {
   toVerified: '获取教育版认证',
   toVerifiedTip: {
-    front: '您现在符合教育版认证的资格。请在下方输入您的教育信息，以完成认证流程，并领取 Dify  Professional 版的',
+    front: '您现在符合教育版认证的资格。请在下方输入您的教育信息，以完成认证流程，并领取 Coop  Professional 版的',
     coupon: '100% 独家优惠券',
     end: '。',
   },
@@ -30,24 +30,24 @@ const translation = {
       },
       option: {
         age: '我确认我已年满 18 周岁。',
-        inSchool: '我确认我目前已在提供的学校入学或受雇。Dify 可能会要求提供入学/雇佣证明。如我虚报资格，我同意支付因教育版认证而被减免的费用。',
+        inSchool: '我确认我目前已在提供的学校入学或受雇。Coop 可能会要求提供入学/雇佣证明。如我虚报资格，我同意支付因教育版认证而被减免的费用。',
       },
     },
   },
   submit: '提交',
   submitError: '提交表单失败，请稍后重新提交问卷。',
   learn: '了解如何获取教育版认证',
-  successTitle: '您已成功获得 Dify 教育版认证！',
-  successContent: '我们已向您的账户发放 Dify Professional 版 100% 折扣优惠券。该优惠券有效期为一年，请在有效期内使用。',
-  rejectTitle: '您的 Dify 教育版认证已被拒绝',
-  rejectContent: '非常遗憾，您无法使用此电子邮件以获得教育版认证资格，也无法领取 Dify Professional 版的 100% 独家优惠券。',
+  successTitle: '您已成功获得 Coop 教育版认证！',
+  successContent: '我们已向您的账户发放 Coop Professional 版 100% 折扣优惠券。该优惠券有效期为一年，请在有效期内使用。',
+  rejectTitle: '您的 Coop 教育版认证已被拒绝',
+  rejectContent: '非常遗憾，您无法使用此电子邮件以获得教育版认证资格，也无法领取 Coop Professional 版的 100% 独家优惠券。',
   emailLabel: '您当前的邮箱',
   notice: {
     dateFormat: 'YYYY/MM/DD',
     expired: {
       title: '您的教育认证已过期',
       summary: {
-        line1: '您仍可继续使用 Dify，但将无法再领取新的教育优惠券。',
+        line1: '您仍可继续使用 Coop，但将无法再领取新的教育优惠券。',
         line2: '',
       },
     },

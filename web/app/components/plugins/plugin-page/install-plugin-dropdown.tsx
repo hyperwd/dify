@@ -93,9 +93,8 @@ const InstallPluginDropdown = (_: Props) => {
                   key={action}
                   className='flex w-full !cursor-pointer items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-state-base-hover'
                   onClick={() => {
-                    if (action === 'local') {
+                    if (action === 'local')
                       fileInputRef.current?.click()
-                    }
                   }}
                 >
                   <Icon className="h-4 w-4 text-text-tertiary" />
@@ -107,11 +106,11 @@ const InstallPluginDropdown = (_: Props) => {
         </PortalToFollowElemContent>
       </div>
       {selectedFile && (<InstallFromLocalPackage
-          file={selectedFile}
-          onClose={() => setSelectedFile(null)}
-          onSuccess={noop}
-        />
-        )
+        file={selectedFile}
+        onClose={() => setSelectedFile(null)}
+        onSuccess={noop}
+      />
+      )
       }
       {/* {pluginLists.map((item: any) => (
         <div key={item.id} onClick={() => handleUninstall(item.id)}>{item.name} 卸载</div>

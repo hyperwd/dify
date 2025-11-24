@@ -4,7 +4,7 @@ import type { KnipConfig } from 'knip'
  * Knip Configuration for Dead Code Detection
  *
  * This configuration helps identify unused files, exports, and dependencies
- * in the Dify web application (Next.js 15 + TypeScript + React 19).
+ * in the Coop web application (Next.js 15 + TypeScript + React 19).
  *
  * ⚠️ SAFETY FIRST: This configuration is designed to be conservative and
  * avoid false positives that could lead to deleting actively used code.

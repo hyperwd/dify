@@ -8,14 +8,11 @@ import {
   RiGraduationCapFill,
   RiLogoutBoxRLine,
   RiSettings3Line,
-  RiTShirt2Line,
 } from '@remixicon/react'
 import Link from 'next/link'
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react'
-import Indicator from '../indicator'
 import PremiumBadge from '@/app/components/base/premium-badge'
 import Avatar from '@/app/components/base/avatar'
-import ThemeSwitcher from '@/app/components/base/theme-switcher'
 import { useAppContext } from '@/context/app-context'
 import { useProviderContext } from '@/context/provider-context'
 import { useModalContext } from '@/context/modal-context'
@@ -114,15 +111,6 @@ export default function AppSelector() {
                       </div>
                     </MenuItem>
                   </div>
-                  <MenuItem disabled>
-                    <div className='p-1'>
-                      <div className={cn(itemClassName, 'hover:bg-transparent')}>
-                        <RiTShirt2Line className='size-4 shrink-0 text-text-tertiary' />
-                        <div className='system-md-regular grow px-1 text-text-secondary'>{t('common.theme.theme')}</div>
-                        <ThemeSwitcher />
-                      </div>
-                    </div>
-                  </MenuItem>
                   <MenuItem>
                     <div className='p-1' onClick={() => handleLogout()}>
                       <div

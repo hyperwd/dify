@@ -3,9 +3,7 @@ import { useEffect } from 'react'
 import type { ActionItem } from '../types'
 import { slashCommandRegistry } from './registry'
 import { executeCommand } from './command-bus'
-import { useTheme } from 'next-themes'
 import { setLocaleOnClient } from '@/i18n-config'
-import { themeCommand } from './theme'
 import { languageCommand } from './language'
 import { forumCommand } from './forum'
 import { docsCommand } from './docs'
@@ -32,7 +30,6 @@ export const slashAction: ActionItem = {
 // Register/unregister default handlers for slash commands with external dependencies.
 export const registerSlashCommands = (deps: Record<string, any>) => {
   // Register command handlers to the registry system with their respective dependencies
-  slashCommandRegistry.register(themeCommand, { setTheme: deps.setTheme })
   slashCommandRegistry.register(languageCommand, { setLocale: deps.setLocale })
   slashCommandRegistry.register(forumCommand, {})
   slashCommandRegistry.register(docsCommand, {})
@@ -42,7 +39,6 @@ export const registerSlashCommands = (deps: Record<string, any>) => {
 
 export const unregisterSlashCommands = () => {
   // Remove command handlers from registry system (automatically calls each command's unregister method)
-  slashCommandRegistry.unregister('theme')
   slashCommandRegistry.unregister('language')
   slashCommandRegistry.unregister('forum')
   slashCommandRegistry.unregister('docs')
@@ -51,14 +47,12 @@ export const unregisterSlashCommands = () => {
 }
 
 export const SlashCommandProvider = () => {
-  const theme = useTheme()
   useEffect(() => {
     registerSlashCommands({
-      setTheme: theme.setTheme,
       setLocale: setLocaleOnClient,
     })
     return () => unregisterSlashCommands()
-  }, [theme.setTheme])
+  }, [])
 
   return null
 }

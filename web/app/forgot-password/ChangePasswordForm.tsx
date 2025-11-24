@@ -1,10 +1,8 @@
 'use client'
 import { useCallback, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { useSearchParams } from 'next/navigation'
 import { basePath } from '@/utils/var'
-import cn from 'classnames'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import Input from '../components/base/input'
 import Button from '@/app/components/base/button'
@@ -14,7 +12,6 @@ import Loading from '@/app/components/base/loading'
 import { validPassword } from '@/config'
 
 const ChangePasswordForm = () => {
-  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
@@ -39,19 +36,19 @@ const ChangePasswordForm = () => {
 
   const valid = useCallback(() => {
     if (!password.trim()) {
-      showErrorMessage(t('login.error.passwordEmpty'))
+      showErrorMessage('密码不能为空')
       return false
     }
     if (!validPassword.test(password)) {
-      showErrorMessage(t('login.error.passwordInvalid'))
+      showErrorMessage('密码格式无效，至少8位包含字母和数字')
       return false
     }
     if (password !== confirmPassword) {
-      showErrorMessage(t('common.account.notEqual'))
+      showErrorMessage('两次输入的密码不一致')
       return false
     }
     return true
-  }, [password, confirmPassword, showErrorMessage, t])
+  }, [password, confirmPassword, showErrorMessage])
 
   const handleChangePassword = useCallback(async () => {
     const token = searchParams.get('token') || ''
@@ -75,100 +72,138 @@ const ChangePasswordForm = () => {
   }, [confirmPassword, password, revalidateToken, searchParams, valid])
 
   return (
-    <div className={
-      cn(
-        'flex w-full grow flex-col items-center justify-center',
-        'px-6',
-        'md:px-[108px]',
-      )
-    }>
+    <>
       {!verifyTokenRes && <Loading />}
       {verifyTokenRes && !verifyTokenRes.is_valid && (
-        <div className="flex flex-col md:w-[400px]">
-          <div className="mx-auto w-full">
-            <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-[20px] border border-divider-regular bg-components-option-card-option-bg p-5 text-[40px] font-bold shadow-lg">🤷‍♂️</div>
-            <h2 className="text-[32px] font-bold text-text-primary">{t('login.invalid')}</h2>
-          </div>
-          <div className="mx-auto mt-6 w-full">
-            <Button variant='primary' className='w-full !text-sm'>
-              <a href="https://dify.ai">{t('login.explore')}</a>
-            </Button>
-          </div>
-        </div>
-      )}
-      {verifyTokenRes && verifyTokenRes.is_valid && !showSuccess && (
-        <div className='flex flex-col md:w-[400px]'>
-          <div className="mx-auto w-full">
-            <h2 className="text-[32px] font-bold text-text-primary">
-              {t('login.changePassword')}
-            </h2>
-            <p className='mt-1 text-sm text-text-secondary'>
-              {t('login.changePasswordTip')}
-            </p>
+        <>
+          {/* Logo Section */}
+          <div className="mb-8 text-center">
+            <img
+              src="/logo-coop.png"
+              alt="Coop Logo"
+              className="mx-auto mb-4 h-16 w-auto object-contain"
+            />
+            <h3 className="text-xl font-semibold text-gray-900">链接无效</h3>
+            <p className="mt-2 text-sm text-gray-500">此重置链接已过期或无效</p>
           </div>
 
-          <div className="mx-auto mt-6 w-full">
+          {/* Form Container */}
+          <div className="rounded-2xl border border-gray-200/50 bg-white/90 p-8 shadow-xl backdrop-blur-sm">
+            <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[20px] border border-divider-regular bg-components-option-card-option-bg p-5 text-[40px] font-bold shadow-lg">🤷‍♂️</div>
+            <div className="text-center">
+              <Button
+                variant='primary'
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 px-4 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              >
+                <a href="https://coop.io" className="text-white no-underline">探索</a>
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+      {verifyTokenRes && verifyTokenRes.is_valid && !showSuccess && (
+        <>
+          {/* Logo Section */}
+          <div className="mb-8 text-center">
+            <img
+              src="/logo-coop.png"
+              alt="Coop Logo"
+              className="mx-auto mb-4 h-16 w-auto object-contain"
+            />
+            <h3 className="text-xl font-semibold text-gray-900">设置新密码</h3>
+            <p className="mt-2 text-sm text-gray-500">请输入您的新密码</p>
+          </div>
+
+          {/* Form Container */}
+          <div className="rounded-2xl border border-gray-200/50 bg-white/90 p-8 shadow-xl backdrop-blur-sm">
             <div className="relative">
               {/* Password */}
-              <div className='mb-5'>
-                <label htmlFor="password" className="my-2 flex items-center justify-between text-sm font-medium text-text-primary">
-                  {t('common.account.newPassword')}
+              <div className='mb-6'>
+                <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-900">
+                  新密码
                 </label>
-                <Input
-                  id="password"
-                  type='password'
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder={t('login.passwordPlaceholder') || ''}
-                  className='mt-1'
-                />
-                <div className='mt-1 text-xs text-text-secondary'>{t('login.error.passwordInvalid')}</div>
+                <div className="mt-1">
+                  <Input
+                    id="password"
+                    type='password'
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="输入新密码"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 transition-all duration-200 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  />
+                </div>
+                <div className='mt-2 text-xs text-gray-500'>密码长度至少8位，包含字母和数字</div>
               </div>
               {/* Confirm Password */}
-              <div className='mb-5'>
-                <label htmlFor="confirmPassword" className="my-2 flex items-center justify-between text-sm font-medium text-text-primary">
-                  {t('common.account.confirmPassword')}
+              <div className='mb-6'>
+                <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-gray-900">
+                  确认密码
                 </label>
-                <Input
-                  id="confirmPassword"
-                  type='password'
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  placeholder={t('login.confirmPasswordPlaceholder') || ''}
-                  className='mt-1'
-                />
+                <div className="mt-1">
+                  <Input
+                    id="confirmPassword"
+                    type='password'
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="再次输入密码"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 transition-all duration-200 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  />
+                </div>
               </div>
               <div>
                 <Button
                   variant='primary'
-                  className='w-full !text-sm'
+                  className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 px-4 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                   onClick={handleChangePassword}
                 >
-                  {t('common.operation.reset')}
+                  重置密码
                 </Button>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Bottom Link */}
+          <div className='mt-6 text-center text-sm text-gray-600'>
+            <span>返回</span>
+            <a
+              className='ml-1 font-medium text-purple-600 transition-colors hover:text-purple-700'
+              href={`${basePath}/signin`}
+            >
+              登录
+            </a>
+          </div>
+        </>
       )}
       {verifyTokenRes && verifyTokenRes.is_valid && showSuccess && (
-        <div className="flex flex-col md:w-[400px]">
-          <div className="mx-auto w-full">
-            <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-[20px] border border-divider-regular bg-components-option-card-option-bg p-5 text-[40px] font-bold shadow-lg">
+        <>
+          {/* Logo Section */}
+          <div className="mb-8 text-center">
+            <img
+              src="/logo-coop.png"
+              alt="Coop Logo"
+              className="mx-auto mb-4 h-16 w-auto object-contain"
+            />
+            <h3 className="text-xl font-semibold text-gray-900">密码已重置</h3>
+            <p className="mt-2 text-sm text-gray-500">您的密码已成功更新</p>
+          </div>
+
+          {/* Form Container */}
+          <div className="rounded-2xl border border-gray-200/50 bg-white/90 p-8 shadow-xl backdrop-blur-sm">
+            <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[20px] border border-divider-regular bg-components-option-card-option-bg p-5 shadow-lg">
               <CheckCircleIcon className='h-10 w-10 text-[#039855]' />
             </div>
-            <h2 className="text-[32px] font-bold text-text-primary">
-              {t('login.passwordChangedTip')}
-            </h2>
+            <div className="text-center">
+              <Button
+                variant='primary'
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 px-4 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              >
+                <a href={`${basePath}/signin`} className="text-white no-underline">登录</a>
+              </Button>
+            </div>
           </div>
-          <div className="mx-auto mt-6 w-full">
-            <Button variant='primary' className='w-full'>
-              <a href={`${basePath}/signin`}>{t('login.passwordChanged')}</a>
-            </Button>
-          </div>
-        </div>
+        </>
       )}
-    </div>
+    </>
   )
 }
 

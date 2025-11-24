@@ -194,7 +194,7 @@ const createPerformanceTestComponent = (
   return PerformanceTestComponent
 }
 
-// Simulate real page component based on Dify's actual theme usage
+// Simulate real page component based on Coop's actual theme usage
 const PageComponent = () => {
   const [mounted, setMounted] = useState(false)
   const { theme } = useTheme()
@@ -203,7 +203,7 @@ const PageComponent = () => {
     setMounted(true)
   }, [])
 
-  // Simulate common theme usage pattern in Dify
+  // Simulate common theme usage pattern in Coop
   const isDark = mounted ? theme === 'dark' : false
 
   return (
@@ -213,7 +213,7 @@ const PageComponent = () => {
         style={{ backgroundColor: isDark ? '#1f2937' : '#ffffff' }}
       >
         <h1 style={{ color: isDark ? '#ffffff' : '#000000' }}>
-          Dify Application
+          Coop Application
         </h1>
         <div data-testid="theme-indicator">
           Current Theme: {mounted ? theme : 'unknown'}

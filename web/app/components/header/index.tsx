@@ -10,7 +10,7 @@ import ExploreNav from './explore-nav'
 import ToolsNav from './tools-nav'
 import { WorkspaceProvider } from '@/context/workspace-context'
 import { useAppContext } from '@/context/app-context'
-import DifyLogo from '@/app/components/base/logo/dify-logo'
+import CoopLogo from '@/app/components/base/logo/coop-logo'
 import WorkplaceSelector from '@/app/components/header/account-dropdown/workplace-selector'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import { useProviderContext } from '@/context/provider-context'
@@ -54,7 +54,7 @@ const Header = () => {
                   className='block h-[22px] w-auto object-contain'
                   alt='logo'
                 />
-                : <DifyLogo />}
+                : <CoopLogo />}
             </Link>
             <div className='mx-1.5 shrink-0 font-light text-divider-deep'>/</div>
             <WorkspaceProvider>
@@ -89,7 +89,7 @@ const Header = () => {
               className='block h-[22px] w-auto object-contain'
               alt='logo'
             />
-            : <DifyLogo />}
+            : <CoopLogo />}
         </Link>
         <div className='mx-1.5 shrink-0 font-light text-divider-deep'>/</div>
         <WorkspaceProvider>

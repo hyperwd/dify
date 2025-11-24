@@ -759,8 +759,8 @@ const vars = {
   'saas-background-inverted': 'var(--color-saas-background-inverted)',
   'saas-background-inverted-hover': 'var(--color-saas-background-inverted-hover)',
 
-  'dify-logo-dify-logo-blue': 'var(--color-dify-logo-dify-logo-blue)',
-  'dify-logo-dify-logo-black': 'var(--color-dify-logo-dify-logo-black)',
+  'coop-logo-coop-logo-blue': 'var(--color-coop-logo-coop-logo-blue)',
+  'coop-logo-coop-logo-black': 'var(--color-coop-logo-coop-logo-black)',
 
 }
 export default vars

@@ -85,7 +85,7 @@ const translation = {
   selectExternalKnowledgeAPI: {
     placeholder: '选择一个外部知识 API',
   },
-    unavailable: '不可用',
+  unavailable: '不可用',
   unavailableTip: '由于 embedding 模型不可用，需要配置默认 embedding 模型',
   datasets: '知识库',
   datasetsApi: 'API',

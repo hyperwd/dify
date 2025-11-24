@@ -85,7 +85,7 @@ const translation = {
   datasetUsedByApp: 'The knowledge is being used by some apps. Apps will no longer be able to use this Knowledge, and all prompt configurations and logs will be permanently deleted.',
   datasetDeleted: 'Knowledge deleted',
   datasetDeleteFailed: 'Failed to delete Knowledge',
-    unavailable: 'Unavailable',
+  unavailable: 'Unavailable',
   unavailableTip: 'Embedding model is not available, the default embedding model needs to be configured',
   datasets: 'KNOWLEDGE',
   datasetsApi: 'API ACCESS',

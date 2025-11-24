@@ -36,8 +36,8 @@ const Pricing: FC<PricingProps> = ({
 
   const pricingPageLanguage = useGetPricingPageLanguage()
   const pricingPageURL = pricingPageLanguage
-    ? `https://dify.ai/${pricingPageLanguage}/pricing#plans-and-features`
-    : 'https://dify.ai/pricing#plans-and-features'
+    ? `https://coop.io/${pricingPageLanguage}/pricing#plans-and-features`
+    : 'https://coop.io/pricing#plans-and-features'
 
   return createPortal(
     <div

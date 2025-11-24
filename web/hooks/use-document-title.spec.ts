@@ -3,7 +3,7 @@
  *
  * This hook manages the browser document title with support for:
  * - Custom branding (when enabled in system features)
- * - Default "Dify" branding
+ * - Default "Coop" branding
  * - Pending state handling (prevents title flicker during loading)
  * - Page-specific titles with automatic suffix
  *
@@ -47,8 +47,8 @@ describe('title should be empty if systemFeatures is pending', () => {
 })
 
 /**
- * Test default Dify branding behavior
- * When custom branding is disabled, should use "Dify" as the brand name
+ * Test default Coop branding behavior
+ * When custom branding is disabled, should use "Coop" as the brand name
  */
 describe('use default branding', () => {
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('use default branding', () => {
    * Test title format with page title and default branding
    * Format: "[page] - Coop"
    */
-  it('document title should be test-Dify if set title', () => {
+  it('document title should be test-Coop if set title', () => {
     renderHook(() => useDocumentTitle('test'))
     expect(document.title).toBe('test - Coop')
   })

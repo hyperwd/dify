@@ -110,7 +110,7 @@ const translation = {
       title: 'Create with OAuth',
       authorization: {
         title: 'OAuth Authorization',
-        description: 'Authorize Dify to access your account',
+        description: 'Authorize Coop to access your account',
         redirectUrl: 'Redirect URL',
         redirectUrlHelp: 'Use this URL in your OAuth app configuration',
         authorizeButton: 'Authorize with {{provider}}',

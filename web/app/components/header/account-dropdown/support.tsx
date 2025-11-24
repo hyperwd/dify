@@ -86,7 +86,7 @@ export default function Support({ closeAccountDropdown }: SupportProps) {
                     className={cn(itemClassName, 'group justify-between',
                       'data-[active]:bg-state-base-hover',
                     )}
-                    href='https://forum.dify.ai/'
+                    href='https://forum.coop.io/'
                     target='_blank' rel='noopener noreferrer'>
                     <RiDiscussLine className='size-4 shrink-0 text-text-tertiary' />
                     <div className='system-md-regular grow px-1 text-text-secondary'>{t('common.userProfile.forum')}</div>

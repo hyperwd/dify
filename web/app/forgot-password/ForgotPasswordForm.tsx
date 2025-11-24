@@ -82,39 +82,63 @@ const ForgotPasswordForm = () => {
     loading
       ? <Loading />
       : <>
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="text-[32px] font-bold text-text-primary">
-            {isEmailSent ? t('login.resetLinkSent') : t('login.forgotPassword')}
-          </h2>
-          <p className='mt-1 text-sm text-text-secondary'>
-            {isEmailSent ? t('login.checkEmailForResetLink') : t('login.forgotPasswordDesc')}
+        {/* Logo Section */}
+        <div className="mb-8 text-center">
+          <img
+            src="/logo-coop.png"
+            alt="Coop Logo"
+            className="mx-auto mb-4 h-16 w-auto object-contain"
+          />
+          <h3 className="text-xl font-semibold text-gray-900">重置密码</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            {isEmailSent ? '重置链接已发送，请查看您的邮箱' : '请输入您的电子邮件地址。我们将向您发送一封电子邮件以重置密码。'}
           </p>
         </div>
-        <div className="mt-8 grow sm:mx-auto sm:w-full sm:max-w-md">
+
+        {/* Form Container */}
+        <div className="rounded-2xl border border-gray-200/50 bg-white/90 p-8 shadow-xl backdrop-blur-sm">
           <div className="relative">
             <form>
               {!isEmailSent && (
-                <div className='mb-5'>
-                  <label htmlFor="email"
-                    className="my-2 flex items-center justify-between text-sm font-medium text-text-primary">
-                    {t('login.email')}
+                <div className='mb-6'>
+                  <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-900">
+                    邮箱
                   </label>
                   <div className="mt-1">
                     <Input
                       {...register('email')}
-                      placeholder={t('login.emailPlaceholder') || ''}
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="输入邮箱地址"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 transition-all duration-200 placeholder:text-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                     />
                     {errors.email && <span className='text-sm text-red-400'>{t(`${errors.email?.message}`)}</span>}
                   </div>
                 </div>
               )}
               <div>
-                <Button variant='primary' className='w-full' onClick={handleSendResetPasswordClick}>
-                  {isEmailSent ? t('login.backToSignIn') : t('login.sendResetLink')}
+                <Button
+                  variant='primary'
+                  className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 px-4 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-purple-700 hover:via-purple-800 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  onClick={handleSendResetPasswordClick}
+                >
+                  {isEmailSent ? '返回登录' : '发送验证码'}
                 </Button>
               </div>
             </form>
           </div>
+        </div>
+
+        {/* Bottom Link */}
+        <div className='mt-6 text-center text-sm text-gray-600'>
+          <span>返回</span>
+          <a
+            className='ml-1 cursor-pointer font-medium text-purple-600 transition-colors hover:text-purple-700'
+            onClick={() => router.push('/signin')}
+          >
+            登录
+          </a>
         </div>
       </>
   )

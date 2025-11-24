@@ -8,16 +8,16 @@ import { registerCommands, unregisterCommands } from './command-bus'
 type ForumDeps = Record<string, never>
 
 /**
- * Forum command - Opens Dify community forum
+ * Forum command - Opens Coop community forum
  */
 export const forumCommand: SlashCommandHandler<ForumDeps> = {
   name: 'forum',
-  description: 'Open Dify community forum',
+  description: 'Open Coop community forum',
   mode: 'direct',
 
   // Direct execution function
   execute: () => {
-    const url = 'https://forum.dify.ai'
+    const url = 'https://forum.coop.io'
     window.open(url, '_blank', 'noopener,noreferrer')
   },
 
@@ -32,14 +32,14 @@ export const forumCommand: SlashCommandHandler<ForumDeps> = {
           <RiFeedbackLine className='h-4 w-4 text-text-tertiary' />
         </div>
       ),
-      data: { command: 'navigation.forum', args: { url: 'https://forum.dify.ai' } },
+      data: { command: 'navigation.forum', args: { url: 'https://forum.coop.io' } },
     }]
   },
 
   register(_deps: ForumDeps) {
     registerCommands({
       'navigation.forum': async (args) => {
-        const url = args?.url || 'https://forum.dify.ai'
+        const url = args?.url || 'https://forum.coop.io'
         window.open(url, '_blank', 'noopener,noreferrer')
       },
     })

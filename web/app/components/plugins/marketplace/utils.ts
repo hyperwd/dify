@@ -52,7 +52,7 @@ export const getMarketplacePluginsByCollectionId = async (collectionId: string, 
   try {
     const url = `${MARKETPLACE_API_PREFIX}/collections/${collectionId}/plugins`
     const headers = new Headers({
-      'X-Dify-Version': !IS_MARKETPLACE ? APP_VERSION : '999.0.0',
+      'X-Coop-Version': !IS_MARKETPLACE ? APP_VERSION : '999.0.0',
     })
     const marketplaceCollectionPluginsData = await globalThis.fetch(
       url,
@@ -90,7 +90,7 @@ export const getMarketplaceCollectionsAndPlugins = async (query?: CollectionsAnd
     if (query?.type)
       marketplaceUrl += `&type=${query.type}`
     const headers = new Headers({
-      'X-Dify-Version': !IS_MARKETPLACE ? APP_VERSION : '999.0.0',
+      'X-Coop-Version': !IS_MARKETPLACE ? APP_VERSION : '999.0.0',
     })
     const marketplaceCollectionsData = await globalThis.fetch(marketplaceUrl, { headers, cache: 'no-store' })
     const marketplaceCollectionsDataJson = await marketplaceCollectionsData.json()

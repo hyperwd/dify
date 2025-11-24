@@ -347,7 +347,7 @@ const translation = {
     'trigger-webhook': 'Webhook Trigger receives HTTP pushes from third-party systems to automatically trigger workflows.',
     'trigger-plugin': 'Third-party integration trigger that starts workflows from external platform events',
   },
-  difyTeam: 'Dify Team',
+  difyTeam: 'Coop Team',
   operator: {
     zoomIn: 'Zoom In',
     zoomOut: 'Zoom Out',
@@ -1049,7 +1049,7 @@ const translation = {
       chooseChunkStructure: 'Choose a chunk structure',
       chunkStructureTip: {
         title: 'Please choose a chunk structure',
-        message: 'The Dify Knowledge Base supports three chunking structures: General, Parent-child, and Q&A. Each knowledge base can have only one structure. The output from the preceding node must align with the selected chunk structure. Note that the choice of chunking structure affects the available index methods.',
+        message: 'The Coop Knowledge Base supports three chunking structures: General, Parent-child, and Q&A. Each knowledge base can have only one structure. The output from the preceding node must align with the selected chunk structure. Note that the choice of chunking structure affects the available index methods.',
         learnMore: 'Learn more',
       },
       changeChunkStructure: 'Change Chunk Structure',

@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 const instrumentSerif = {
   className: 'font-serif',
   style: { fontFamily: 'Georgia, serif' },
-  variable: '--font-instrument-serif'
+  variable: '--font-instrument-serif',
 }
 
 const LocaleLayout = async ({
@@ -83,14 +83,14 @@ const LocaleLayout = async ({
       </head>
       <body
         className='color-scheme h-full select-auto'
+        data-theme="light"
         {...datasetMap}
       >
         <ThemeProvider
           attribute='data-theme'
-          defaultTheme='system'
-          enableSystem
+          defaultTheme='light'
+          enableSystem={false}
           disableTransitionOnChange
-          enableColorScheme={false}
         >
           <BrowserInitializer>
             <SentryInitializer>

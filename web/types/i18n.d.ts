@@ -1,4 +1,4 @@
-// TypeScript type definitions for Dify's i18next configuration
+// TypeScript type definitions for Coop's i18next configuration
 // This file is auto-generated. Do not edit manually.
 // To regenerate, run: pnpm run gen:i18n-types
 import 'react-i18next'
@@ -81,7 +81,7 @@ type FlattenKeys<T> = T extends object
 
 export type ValidTranslationKeys = FlattenKeys<Messages>
 
-// Extend react-i18next with Dify's type structure
+// Extend react-i18next with Coop's type structure
 declare module 'react-i18next' {
   type CustomTypeOptions = {
     defaultNS: 'translation';

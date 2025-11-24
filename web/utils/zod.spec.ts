@@ -19,7 +19,7 @@ describe('Zod Features', () => {
     expect(() => stringSchemaWithError.parse(undefined)).toThrow('Name is required')
     expect(() => stringSchemaWithError.parse(12)).toThrow('Invalid name type, expected string')
 
-    expect(urlSchema.parse('https://dify.ai')).toBe('https://dify.ai')
+    expect(urlSchema.parse('https://coop.io')).toBe('https://coop.io')
     expect(uuidSchema.parse('123e4567-e89b-12d3-a456-426614174000')).toBe('123e4567-e89b-12d3-a456-426614174000')
   })
 

@@ -37,7 +37,7 @@ const Blocks = ({
       sort: 0, // Default sort order
       type: block.type,
       title: block.title,
-      author: 'Dify',
+      author: 'Coop',
       description: block.description,
     },
     defaultValue: {},

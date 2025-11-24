@@ -56,7 +56,7 @@ const APIKeyInfoPanel: FC = () => {
       {!isCloud && (
         <a
           className='mt-2 flex h-[26px] items-center space-x-1  p-1 text-xs font-medium text-[#155EEF]'
-          href='https://cloud.dify.ai/apps'
+          href='https://cloud.coop.io/apps'
           target='_blank' rel='noopener noreferrer'
         >
           <div>{t('appOverview.apiKeyInfo.tryCloud')}</div>

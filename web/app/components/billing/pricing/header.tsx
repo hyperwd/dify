@@ -1,5 +1,5 @@
 import React from 'react'
-import DifyLogo from '../../base/logo/dify-logo'
+import CoopLogo from '../../base/logo/coop-logo'
 import { useTranslation } from 'react-i18next'
 import Button from '../../base/button'
 import { RiCloseLine } from '@remixicon/react'
@@ -18,7 +18,7 @@ const Header = ({
       <div className='relative flex max-w-[1680px] grow flex-col justify-end gap-y-1 border-x border-divider-accent p-6 pt-8'>
         <div className='flex items-end'>
           <div className='py-[5px]'>
-            <DifyLogo className='h-[27px] w-[60px]' />
+            <CoopLogo className='h-[27px] w-[60px]' />
           </div>
           <span className='bg-billing-plan-title-bg bg-clip-text px-1.5 font-instrument text-[37px] italic leading-[1.2] text-transparent'>
             {t('billing.plansCommon.title.plans')}

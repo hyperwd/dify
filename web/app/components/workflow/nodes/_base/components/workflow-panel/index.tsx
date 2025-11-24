@@ -67,7 +67,6 @@ import { useResizePanel } from '../../hooks/use-resize-panel'
 import BeforeRunForm from '../before-run-form'
 import PanelWrap from '../before-run-form/panel-wrap'
 import ErrorHandleOnPanel from '../error-handle/error-handle-on-panel'
-import HelpLink from '../help-link'
 import NextStep from '../next-step'
 import PanelOperator from '../panel-operator'
 import RetryOnPanel from '../retry/retry-on-panel'
@@ -500,7 +499,7 @@ const BasePanel: FC<BasePanelProps> = ({
                   </Tooltip>
                 )
               }
-              <PanelOperator id={id} data={data} showHelpLink={false} />
+              <PanelOperator id={id} data={data} />
               <div className='mx-3 h-3.5 w-[1px] bg-divider-regular' />
               <div
                 className='flex h-6 w-6 cursor-pointer items-center justify-center'

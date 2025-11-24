@@ -21,7 +21,7 @@ const meta = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'Helper utilities built on top of `@tanstack/react-form` that power form rendering across Dify. These stories demonstrate the `useAppForm` hook, field primitives, conditional visibility, and custom actions.',
+        component: 'Helper utilities built on top of `@tanstack/react-form` that power form rendering across Coop. These stories demonstrate the `useAppForm` hook, field primitives, conditional visibility, and custom actions.',
       },
     },
   },
@@ -131,7 +131,7 @@ const mockFileUploadConfig = {
 }
 
 const mockFieldDefaults = {
-  headline: 'Dify App',
+  headline: 'Coop App',
   description: 'Streamline your AI workflows with configurable building blocks.',
   category: 'workbench',
   allowNotifications: true,
@@ -434,7 +434,7 @@ export const FieldExplorer: Story = {
         code: `
 const form = useAppForm({
   defaultValues: {
-    headline: 'Dify App',
+    headline: 'Coop App',
     description: 'Streamline your AI workflows',
     category: 'workbench',
     allowNotifications: true,

@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic'
 import { useGlobalPublicStore } from '@/context/global-public-context'
 
 // Avoid rendering the logo and theme selector on the server
-const DifyLogo = dynamic(() => import('@/app/components/base/logo/dify-logo'), {
+const CoopLogo = dynamic(() => import('@/app/components/base/logo/coop-logo'), {
   ssr: false,
   loading: () => <div className='h-7 w-16 bg-transparent' />,
 })
@@ -24,14 +24,17 @@ const Header = () => {
   const systemFeatures = useGlobalPublicStore(s => s.systemFeatures)
 
   return (
-    <div className='flex w-full items-center justify-between p-6'>
+    <div className='flex w-full items-center justify-between p-0'>
       {systemFeatures.branding.enabled && systemFeatures.branding.login_page_logo
         ? <img
           src={systemFeatures.branding.login_page_logo}
           className='block h-7 w-auto object-contain'
           alt='logo'
         />
-        : <DifyLogo size='large' />}
+        : <div className="flex h-7 items-center">
+          <CoopLogo size='large' />
+        </div>
+      }
       <div className='flex items-center gap-1'>
         <LocaleSigninSelect
           value={locale}

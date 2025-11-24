@@ -23,7 +23,7 @@ import { useProviderContext } from '@/context/provider-context'
 import { useToastContext } from '@/app/components/base/toast'
 import { EDUCATION_VERIFYING_LOCALSTORAGE_ITEM } from '@/app/education-apply/constants'
 import { noop } from 'lodash-es'
-import DifyLogo from '../components/base/logo/dify-logo'
+import CoopLogo from '../components/base/logo/coop-logo'
 import { useDocLink } from '@/context/i18n'
 const EducationApplyAge = () => {
   const { t } = useTranslation()
@@ -85,7 +85,7 @@ const EducationApplyAge = () => {
         >
         </div>
         <div className='mt-[-349px] box-content flex h-7 items-center justify-between p-6'>
-          <DifyLogo size='large' style='monochromeWhite' />
+          <CoopLogo size='large' style='monochromeWhite' />
         </div>
         <div className='mx-auto max-w-[720px] px-8 pb-[180px]'>
           <div className='mb-2 flex h-[192px] flex-col justify-end pb-4 pt-3 text-text-primary-on-surface'>
@@ -123,9 +123,9 @@ const EducationApplyAge = () => {
             </div>
             <div className='system-md-regular mb-1 text-text-tertiary'>
               {t('education.form.terms.desc.front')}&nbsp;
-              <a href='https://dify.ai/terms' target='_blank' className='text-text-secondary hover:underline'>{t('education.form.terms.desc.termsOfService')}</a>&nbsp;
+              <a href='https://coop.io/terms' target='_blank' className='text-text-secondary hover:underline'>{t('education.form.terms.desc.termsOfService')}</a>&nbsp;
               {t('education.form.terms.desc.and')}&nbsp;
-              <a href='https://dify.ai/privacy' target='_blank' className='text-text-secondary hover:underline'>{t('education.form.terms.desc.privacyPolicy')}</a>
+              <a href='https://coop.io/privacy' target='_blank' className='text-text-secondary hover:underline'>{t('education.form.terms.desc.privacyPolicy')}</a>
               {t('education.form.terms.desc.end')}
             </div>
             <div className='system-md-regular py-2 text-text-primary'>

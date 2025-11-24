@@ -7,7 +7,7 @@ import Modal from '@/app/components/base/modal'
 import Button from '@/app/components/base/button'
 import type { LangGeniusVersionResponse } from '@/models/common'
 import { IS_CE_EDITION } from '@/config'
-import DifyLogo from '@/app/components/base/logo/dify-logo'
+import CoopLogo from '@/app/components/base/logo/coop-logo'
 
 import { useGlobalPublicStore } from '@/context/global-public-context'
 
@@ -41,7 +41,7 @@ export default function AccountAbout({
               className='block h-7 w-auto object-contain'
               alt='logo'
             />
-            : <DifyLogo size='large' className='mx-auto' />}
+            : <CoopLogo size='large' className='mx-auto' />}
 
           <div className='text-center text-xs font-normal text-text-tertiary'>Version {langGeniusVersionInfo?.current_version}</div>
           <div className='flex flex-col items-center gap-2 text-center text-xs font-normal text-text-secondary'>
@@ -51,8 +51,8 @@ export default function AccountAbout({
                 IS_CE_EDITION
                   ? <Link href={'https://github.com/langgenius/dify/blob/main/LICENSE'} target='_blank' rel='noopener noreferrer'>Open Source License</Link>
                   : <>
-                    <Link href='https://dify.ai/privacy' target='_blank' rel='noopener noreferrer'>Privacy Policy</Link>,&nbsp;
-                    <Link href='https://dify.ai/terms' target='_blank' rel='noopener noreferrer'>Terms of Service</Link>
+                    <Link href='https://coop.io/privacy' target='_blank' rel='noopener noreferrer'>Privacy Policy</Link>,&nbsp;
+                    <Link href='https://coop.io/terms' target='_blank' rel='noopener noreferrer'>Terms of Service</Link>
                   </>
               }
             </div>

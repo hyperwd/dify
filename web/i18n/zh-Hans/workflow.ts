@@ -346,7 +346,7 @@ const translation = {
     'trigger-schedule': '基于时间的工作流触发器，按计划启动工作流',
     'trigger-plugin': '从外部平台事件启动工作流的第三方集成触发器',
   },
-  difyTeam: 'Dify 团队',
+  difyTeam: 'Coop 团队',
   operator: {
     zoomIn: '放大',
     zoomOut: '缩小',
@@ -1004,7 +1004,7 @@ const translation = {
       chooseChunkStructure: '选择分段结构',
       chunkStructureTip: {
         title: '请选择分段结构',
-        message: 'Dify 知识库支持三种分块结构：通用、父子和问答。每个知识库只能有一种结构。前一节点的输出必须与所选的分块结构相匹配。请注意，分块结构的选择会影响可用的索引方法。',
+        message: 'Coop 知识库支持三种分块结构：通用、父子和问答。每个知识库只能有一种结构。前一节点的输出必须与所选的分块结构相匹配。请注意，分块结构的选择会影响可用的索引方法。',
         learnMore: '了解更多',
       },
       changeChunkStructure: '更改分段结构',

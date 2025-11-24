@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs'
 import ShareQRCode from '.'
 
 const QRDemo = ({
-  content = 'https://dify.ai',
+  content = 'https://coop.io',
 }: {
   content?: string
 }) => {
@@ -35,7 +35,7 @@ const meta = {
     },
   },
   args: {
-    content: 'https://dify.ai',
+    content: 'https://coop.io',
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof QRDemo>
@@ -47,6 +47,6 @@ export const Playground: Story = {}
 
 export const DemoLink: Story = {
   args: {
-    content: 'https://dify.ai/docs',
+    content: 'https://coop.io/docs',
   },
 }

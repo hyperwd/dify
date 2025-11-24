@@ -19,7 +19,7 @@ import Description from '../card/base/description'
 import Title from '../card/base/title'
 import { useCategories } from '../hooks'
 import { usePluginPageContext } from '../plugin-page/context'
-import { PluginCategoryEnum, type PluginDetail } from '../types'
+import type { PluginDetail } from '../types'
 import Action from './action'
 
 type Props = {
@@ -44,7 +44,7 @@ const PluginItem: FC<Props> = ({
     meta,
     plugin_id,
   } = plugin
-  const { category, name, label, description, icon, verified, meta: declarationMeta } = plugin.declaration
+  const { category, name, label, description, icon, verified, author, meta: declarationMeta } = plugin.declaration
 
   const { langGeniusVersionInfo } = useAppContext()
 
@@ -54,7 +54,6 @@ const PluginItem: FC<Props> = ({
     return gte(langGeniusVersionInfo.current_version, declarationMeta.minimum_dify_version ?? '0.0.0')
   }, [declarationMeta.minimum_dify_version, langGeniusVersionInfo.current_version])
 
-  
   const handleDelete = useCallback(() => {
     refreshPluginList({ category } as any)
   }, [category, refreshPluginList])
@@ -108,13 +107,16 @@ const PluginItem: FC<Props> = ({
                   meta={meta}
                   onDelete={handleDelete}
                   category={category}
+                  author={author}
+                  isShowFetchNewVersion={true}
+                  isShowInfo={true}
                 />
               </div>
             </div>
           </div>
         </div>
       </div>
-      </div>
+    </div>
   )
 }
 
