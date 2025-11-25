@@ -163,7 +163,7 @@ const translation = {
   },
   menus: {
     status: 'beta',
-    explore: 'Explore',
+    explore: 'App Center',
     apps: 'Studio',
     appDetail: 'App Detail',
     account: 'Account',

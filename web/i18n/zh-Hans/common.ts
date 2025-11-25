@@ -163,7 +163,7 @@ const translation = {
   },
   menus: {
     status: 'beta',
-    explore: '探索',
+    explore: '应用中心',
     apps: '工作室',
     appDetail: '应用详情',
     account: '账户',

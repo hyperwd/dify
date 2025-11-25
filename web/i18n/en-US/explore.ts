@@ -1,9 +1,11 @@
 const translation = {
-  title: 'Explore',
+  title: 'Workspace',
   sidebar: {
-    discovery: 'Discovery',
+    discovery: 'App Center',
     chat: 'Chat',
-    workspace: 'Workspace',
+    workspace: 'Pinned',
+    adminPanel: 'Admin Panel',
+    language: 'Language',
     action: {
       pin: 'Pin',
       unpin: 'Unpin',
@@ -16,9 +18,10 @@ const translation = {
     },
   },
   apps: {
-    title: 'Explore Apps',
-    description: 'Use these template apps instantly or customize your own apps based on the templates.',
-    allCategories: 'Recommended',
+    title: 'App Center',
+    description: 'You can choose the applications you need for production and work.',
+    allTags: 'All Tags',
+    uncategorized: 'Uncategorized',
   },
   appCard: {
     addToWorkspace: 'Add to Workspace',

@@ -3,8 +3,16 @@ import type { FC } from 'react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useContext } from 'use-context-selector'
-import { useSelectedLayoutSegments } from 'next/navigation'
+import { useRouter, useSelectedLayoutSegments } from 'next/navigation'
 import Link from 'next/link'
+import {
+  RiAdminLine,
+  RiArrowRightUpLine,
+  RiGlobalLine,
+  RiGraduationCapFill,
+  RiLogoutBoxRLine,
+} from '@remixicon/react'
+import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react'
 import Toast from '../../base/toast'
 import Item from './app-nav-item'
 import cn from '@/utils/classnames'
@@ -13,6 +21,13 @@ import Confirm from '@/app/components/base/confirm'
 import Divider from '@/app/components/base/divider'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import { useGetInstalledApps, useUninstallApp, useUpdateAppPinStatus } from '@/service/use-explore'
+import Avatar from '@/app/components/base/avatar'
+import PremiumBadge from '@/app/components/base/premium-badge'
+import { useAppContext } from '@/context/app-context'
+import { useProviderContext } from '@/context/provider-context'
+import { useLogout } from '@/service/use-common'
+import I18n from '@/context/i18n'
+import { RiArrowDownSLine } from '@remixicon/react'
 
 const SelectedDiscoveryIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="current" xmlns="http://www.w3.org/2000/svg">
@@ -34,6 +49,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
   controlUpdateInstalledApps,
 }) => {
   const { t } = useTranslation()
+  const router = useRouter()
   const segments = useSelectedLayoutSegments()
   const lastSegment = segments.slice(-1)[0]
   const isDiscoverySelected = lastSegment === 'apps'
@@ -42,11 +58,47 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const { mutateAsync: uninstallApp } = useUninstallApp()
   const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
 
+  // Account info
+  const { userProfile } = useAppContext()
+  const { isEducationAccount } = useProviderContext()
+  const { mutateAsync: logout } = useLogout()
+
+  // Language info
+  const { i18n } = useTranslation()
+  const { setLocaleOnClient } = useContext(I18n)
+
+  const languages = [
+    { value: 'zh-Hans', name: 'Chinese (Simplified)', nativeName: '简体中文' },
+    { value: 'en-US', name: 'English', nativeName: 'English' },
+  ]
+
+  const handleLanguageSwitch = async (languageValue: string) => {
+    // 直接使用传入的 languageValue，因为它已经是正确的格式 (zh-Hans, en-US)
+    const locale = languageValue
+
+    if (i18n.language === locale) return
+
+    try {
+      // 使用项目中正确的语言切换函数
+      await setLocaleOnClient(locale as any)
+    }
+    catch (error) {
+      console.error('Language switch error:', error)
+    }
+  }
+
+  const getCurrentLanguageName = () => {
+    const currentLang = languages.find(lang => lang.value === i18n.language
+      || (i18n.language === 'zh' && lang.value === 'zh-Hans'))
+    return currentLang ? currentLang.nativeName : '简体中文'
+  }
+
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
 
   const [showConfirm, setShowConfirm] = useState(false)
   const [currId, setCurrId] = useState('')
+
   const handleDelete = async () => {
     const id = currId
     await uninstallApp(id)
@@ -55,6 +107,20 @@ const SideBar: FC<IExploreSideBarProps> = ({
       type: 'success',
       message: t('common.api.remove'),
     })
+  }
+
+  const handleLogout = async () => {
+    await logout()
+
+    localStorage.removeItem('setup_status')
+    // Tokens are now stored in cookies and cleared by backend
+
+    // To avoid use other account's education notice info
+    localStorage.removeItem('education-reverify-prev-expire-at')
+    localStorage.removeItem('education-reverify-has-noticed')
+    localStorage.removeItem('education-expired-has-notified')
+
+    router.push('/signin')
   }
 
   const handleUpdatePinStatus = async (id: string, isPinned: boolean) => {
@@ -81,9 +147,16 @@ const SideBar: FC<IExploreSideBarProps> = ({
     fetchInstalledAppList()
   }, [controlUpdateInstalledApps, fetchInstalledAppList])
 
-  const pinnedAppsCount = installedApps.filter(({ is_pinned }) => is_pinned).length
+  const pinnedApps = installedApps.filter(({ is_pinned }) => is_pinned)
+
+  // Account dropdown item styles
+  const accountItemClassName = `
+    flex items-center w-full h-8 pl-3 pr-2 text-text-secondary system-md-regular
+    rounded-lg hover:bg-state-base-hover cursor-pointer gap-1
+  `
+
   return (
-    <div className='w-fit shrink-0 cursor-pointer border-r border-divider-burn px-4 pt-6 sm:w-[216px]'>
+    <div className='flex h-full w-fit shrink-0 cursor-pointer flex-col border-r border-divider-burn px-4 pb-4 pt-6 sm:w-[216px]'>
       <div className={cn(isDiscoverySelected ? 'text-text-accent' : 'text-text-tertiary')}>
         <Link
           href='/explore/apps'
@@ -95,15 +168,11 @@ const SideBar: FC<IExploreSideBarProps> = ({
           {!isMobile && <div className='text-sm'>{t('explore.sidebar.discovery')}</div>}
         </Link>
       </div>
-      {installedApps.length > 0 && (
-        <div className='mt-10'>
+      {pinnedApps.length > 0 && (
+        <div className='mt-10 min-h-0 flex-1'>
           <p className='break-all pl-2 text-xs font-medium uppercase text-text-tertiary mobile:px-0'>{t('explore.sidebar.workspace')}</p>
-          <div className='mt-3 space-y-1 overflow-y-auto overflow-x-hidden'
-            style={{
-              height: 'calc(100vh - 250px)',
-            }}
-          >
-            {installedApps.map(({ id, is_pinned, uninstallable, app: { name, icon_type, icon, icon_url, icon_background } }, index) => (
+          <div className='mt-3 h-full space-y-1 overflow-y-auto overflow-x-hidden'>
+            {pinnedApps.map(({ id, is_pinned, uninstallable, app: { name, icon_type, icon, icon_url, icon_background } }, index) => (
               <React.Fragment key={id}>
                 <Item
                   isMobile={isMobile}
@@ -122,12 +191,157 @@ const SideBar: FC<IExploreSideBarProps> = ({
                     setShowConfirm(true)
                   }}
                 />
-                {index === pinnedAppsCount - 1 && index !== installedApps.length - 1 && <Divider />}
+                {index < pinnedApps.length - 1 && <Divider />}
               </React.Fragment>
             ))}
           </div>
         </div>
       )}
+
+      {/* Account Information at Bottom */}
+      <div className='mt-4 border-t border-divider-subtle pt-4'>
+        <Menu as="div" className="relative inline-block w-full text-left">
+          {
+            ({ open, _close }) => (
+              <>
+                <MenuButton className={cn('inline-flex w-full items-center justify-center rounded-lg p-2 transition-colors hover:bg-background-default-dodge', open && 'bg-background-default-dodge')}>
+                  <div className='flex w-full items-center gap-2'>
+                    <Avatar avatar={userProfile.avatar_url} name={userProfile.name} size={24} />
+                    <div className='min-w-0 flex-1 text-left'>
+                      <div className='truncate text-sm font-medium text-text-primary'>
+                        {userProfile.name}
+                      </div>
+                      <div className='flex items-center gap-1 truncate text-xs text-text-tertiary'>
+                        {userProfile.email}
+                        <RiArrowDownSLine className='h-3 w-3' />
+                      </div>
+                    </div>
+                  </div>
+                </MenuButton>
+                <Transition
+                  as={React.Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <MenuItems
+                    className="
+                      absolute bottom-full left-0 right-0 z-50 mb-2
+                      w-full origin-bottom-left divide-y divide-divider-subtle rounded-xl bg-components-panel-bg-blur
+                      shadow-lg backdrop-blur-sm focus:outline-none
+                    "
+                  >
+                    {/* User Section */}
+                    <div className="px-1 py-1">
+                      <MenuItem disabled>
+                        <div className='flex flex-nowrap items-center py-2 pl-3 pr-2'>
+                          <div className='grow'>
+                            <div className='system-md-medium break-all text-text-primary'>
+                              {userProfile.name}
+                              {isEducationAccount && (
+                                <PremiumBadge size='s' color='blue' className='ml-1 !px-2'>
+                                  <RiGraduationCapFill className='mr-1 h-3 w-3' />
+                                  <span className='system-2xs-medium'>EDU</span>
+                                </PremiumBadge>
+                              )}
+                            </div>
+                            <div className='system-xs-regular break-all text-text-tertiary'>{userProfile.email}</div>
+                          </div>
+                          <Avatar avatar={userProfile.avatar_url} name={userProfile.name} size={36} />
+                        </div>
+                      </MenuItem>
+                      <MenuItem>
+                        <Link
+                          className={cn(accountItemClassName, 'group',
+                            'data-[active]:bg-state-base-hover',
+                          )}
+                          href='/apps'
+                          target='_blank' rel='noopener noreferrer'>
+                          <RiAdminLine className='size-4 shrink-0 text-text-tertiary' />
+                          <div className='system-md-regular grow px-1 text-text-secondary'>{t('explore.sidebar.adminPanel')}</div>
+                          <RiArrowRightUpLine className='size-[14px] shrink-0 text-text-tertiary' />
+                        </Link>
+                      </MenuItem>
+                      <MenuItem>
+                        <Menu as="div" className="relative w-full">
+                          {({ open }) => (
+                            <>
+                              <MenuButton className={cn(accountItemClassName,
+                                'data-[active]:bg-state-base-hover', 'w-full',
+                              )}>
+                                <RiGlobalLine className='size-4 shrink-0 text-text-tertiary' />
+                                <div className='system-md-regular grow px-1 text-left text-text-secondary'>{t('explore.sidebar.language')}</div>
+                                <div className='flex items-center gap-1 text-text-tertiary'>
+                                  <span className='text-xs'>{getCurrentLanguageName()}</span>
+                                  <RiArrowRightUpLine className='size-[14px] shrink-0 rotate-90' />
+                                </div>
+                              </MenuButton>
+                              <Transition
+                                as={React.Fragment}
+                                show={open}
+                                enter="transition ease-out duration-100"
+                                enterFrom="transform opacity-0 scale-95"
+                                enterTo="transform opacity-100 scale-100"
+                                leave="transition ease-in duration-75"
+                                leaveFrom="transform opacity-100 scale-100"
+                                leaveTo="transform opacity-0 scale-95"
+                              >
+                                <MenuItems
+                                  static
+                                  className="absolute left-full top-0 z-50 ml-1"
+                                >
+                                  <div className="w-40 overflow-hidden rounded-xl border-[0.5px] border-components-panel-border bg-components-panel-bg-blur shadow-lg backdrop-blur-sm">
+                                    <div className="py-1">
+                                      {languages.map(language => (
+                                        <MenuItem key={language.value}>
+                                          <button
+                                            className={cn(
+                                              'w-full px-3 py-2 text-left text-sm transition-colors',
+                                              'hover:bg-state-base-hover',
+                                              i18n.language === language.value || (i18n.language === 'zh' && language.value === 'zh-Hans')
+                                                ? 'bg-state-base-hover text-text-accent'
+                                                : 'text-text-secondary',
+                                            )}
+                                            onClick={() => handleLanguageSwitch(language.value)}
+                                          >
+                                            {language.nativeName}
+                                          </button>
+                                        </MenuItem>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </MenuItems>
+                              </Transition>
+                            </>
+                          )}
+                        </Menu>
+                      </MenuItem>
+                    </div>
+
+                    {/* Logout Section */}
+                    <MenuItem>
+                      <div className='p-1' onClick={() => handleLogout()}>
+                        <div
+                          className={cn(accountItemClassName, 'group justify-between',
+                            'data-[active]:bg-state-base-hover',
+                          )}
+                        >
+                          <RiLogoutBoxRLine className='size-4 shrink-0 text-text-tertiary' />
+                          <div className='system-md-regular grow px-1 text-text-secondary'>{t('common.userProfile.logout')}</div>
+                        </div>
+                      </div>
+                    </MenuItem>
+                  </MenuItems>
+                </Transition>
+              </>
+            )
+          }
+        </Menu>
+      </div>
+
       {showConfirm && (
         <Confirm
           title={t('explore.sidebar.delete.title')}

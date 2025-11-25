@@ -1,9 +1,11 @@
 const translation = {
-  title: '探索',
+  title: '工作台',
   sidebar: {
-    discovery: '发现',
+    discovery: '应用中心',
     chat: '智聊',
-    workspace: '工作区',
+    workspace: '已置顶',
+    adminPanel: '管理后台',
+    language: '语言',
     action: {
       pin: '置顶',
       unpin: '取消置顶',
@@ -16,9 +18,10 @@ const translation = {
     },
   },
   apps: {
-    title: '探索应用',
-    description: '使用这些模板应用程序，或根据模板自定义您自己的应用程序。',
-    allCategories: '推荐',
+    title: '应用中心',
+    description: '您可以选择需要的应用程序来进行生产与工作。',
+    allTags: '全部标签',
+    uncategorized: '未分类',
   },
   appCard: {
     addToWorkspace: '添加到工作区',
