@@ -42,16 +42,13 @@ interface IAppCardItemProps {
   onDelete: (id: string) => void
 }
 
-const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, id, isPinned, uninstallable, onRecordAccess, onDelete }) => {
+const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, onDelete }) => {
   const { t } = useTranslation()
   const appRef = React.useRef(null)
   const router = useRouter()
 
   // 当前应用就是已安装应用，installedAppId 就是 app.id
   const installedAppId = app.id
-
-  // 获取用户信息用于隔离访问记录
-  const { userProfile } = useAppContext()
 
   // 获取应用详细信息，包括描述
   const { data: appDetail } = useQuery({
@@ -351,10 +348,9 @@ const Apps = ({
 
   const [currApp] = React.useState<ExploreApp | null>(null)
   const [isShowCreateModal, setIsShowCreateModal] = React.useState(false)
-  const [showDSLConfirmModal, setShowDSLConfirmModal] = useState(false)
-  const [currId, setCurrId] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
-  
+  const [showDSLConfirmModal, setShowDSLConfirmModal] = useState(false)
+
   const {
     handleImportDSL,
     handleImportDSLConfirm,

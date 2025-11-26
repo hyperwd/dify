@@ -62,7 +62,6 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const recordAppAccess = useRecordAppAccess()
 
   // Account info
-  const { userProfile } = useAppContext()
   const { isEducationAccount } = useProviderContext()
   const { mutateAsync: logout } = useLogout()
 
@@ -100,7 +99,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const isMobile = media === MediaType.mobile
 
   // 记录应用访问 - 按用户隔离
-  const recordAppAccess = (appId: string) => {
+  const recordAppAccess = useRecordAppAccess()
     // 使用用户ID创建独立的访问记录键
     const userId = userProfile?.id || 'anonymous'
     const accessKey = `explore_recent_app_access_${userId}`
