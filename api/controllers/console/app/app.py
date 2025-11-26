@@ -11,7 +11,6 @@ from controllers.console.wraps import (
     account_initialization_required,
     cloud_edition_billing_resource_check,
     edit_permission_required,
-    enterprise_license_required,
     setup_required,
 )
 from core.ops.ops_trace_manager import OpsTraceManager
