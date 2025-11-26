@@ -32,20 +32,18 @@ import type { Tag } from '@/app/components/base/tag-management/constant'
 import { useAppContext } from '@/context/app-context'
 
 // 应用卡片组件，处理应用模板的点击和操作
-interface IAppCardItemProps {
+type IAppCardItemProps = {
   app: any
   handleUpdatePinStatus: (variables: { appId: string; isPinned: boolean }) => Promise<any>
-  id: string
   isPinned: boolean
-  uninstallable: boolean
   onRecordAccess: () => void
-  onDelete: (id: string) => void
 }
 
-const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, onDelete }) => {
+const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, isPinned, onRecordAccess }) => {
   const { t } = useTranslation()
   const appRef = React.useRef(null)
   const router = useRouter()
+  const isHovering = useHover(appRef)
 
   // 当前应用就是已安装应用，installedAppId 就是 app.id
   const installedAppId = app.id
@@ -87,28 +85,13 @@ const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, 
   }
 
   const handleAppClick = () => {
-    // 记录应用访问时间 - 使用用户ID隔离
-    const userId = userProfile?.id || 'anonymous'
-    const accessKey = `explore_recent_app_access_${userId}`
-    const accessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
-    accessData[installedAppId] = new Date().toISOString()
-
-    // 清理超过10天的访问记录
-    const now = new Date()
-    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-    Object.keys(accessData).forEach(key => {
-      if (new Date(accessData[key]) < tenDaysAgo) {
-        delete accessData[key]
-      }
-    })
-
-    localStorage.setItem(accessKey, JSON.stringify(accessData))
+    // 记录访问
+    onRecordAccess()
 
     // 使用 Next.js 客户端路由跳转，避免页面整体刷新，与左侧边栏行为一致
     router.push(`/explore/installed/${installedAppId}`)
   }
 
-  
   return (
     <div
       key={app.id}
@@ -180,6 +163,7 @@ const Apps = ({
 }: AppsProps) => {
   const { t } = useTranslation()
   const allTagsText = t('explore.apps.allTags', 'All Tags')
+  const { userProfile } = useAppContext()
 
   // 标签选择和搜索状态
   const [keywords, setKeywords] = useState('')
@@ -206,9 +190,8 @@ const Apps = ({
     error: installedAppsError,
   } = useGetInstalledApps()
 
-  
   // 置顶状态管理，与左侧置顶状态保持同步
-  
+
   // 标签管理状态
   const [tagList, setTagList] = useState<Tag[]>([])
   const [pinnedApps, setPinnedApps] = useState<Set<string>>(new Set())
@@ -237,7 +220,6 @@ const Apps = ({
       setTagList(appTagsData)
   }, [appTagsData])
 
-  
   // 当标签改变时，重新获取标签筛选数据
   React.useEffect(() => {
     // 标签筛选的数据会自动重新获取，因为queryKey包含currTag
@@ -394,7 +376,6 @@ const Apps = ({
   }, [handleImportDSLConfirm, onSuccess])
 
   const recordAppAccess = (appId: string) => {
-    const { userProfile } = useAppContext()
     const userId = userProfile?.id || 'anonymous'
     const accessKey = `explore_recent_app_access_${userId}`
     const accessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
@@ -403,10 +384,9 @@ const Apps = ({
     // 清理超过10天的访问记录
     const now = new Date()
     const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-    Object.keys(accessData).forEach(key => {
-      if (new Date(accessData[key]) < tenDaysAgo) {
+    Object.keys(accessData).forEach((key) => {
+      if (new Date(accessData[key]) < tenDaysAgo)
         delete accessData[key]
-      }
     })
 
     localStorage.setItem(accessKey, JSON.stringify(accessData))
@@ -480,16 +460,9 @@ const Apps = ({
             <AppCardItem
               key={app.id}
               app={app}
-              pinnedApps={pinnedApps}
               handleUpdatePinStatus={handleUpdatePinStatus}
-              id={app.id}
               isPinned={pinnedApps.has(app.id)}
-              uninstallable={app.uninstallable}
               onRecordAccess={() => recordAppAccess(app.id)}
-              onDelete={(id) => {
-                setCurrId(id)
-                setShowConfirm(true)
-              }}
             />
           ))}
           {searchFilteredList.length === 0 && (

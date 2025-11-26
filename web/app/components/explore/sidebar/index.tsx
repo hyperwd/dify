@@ -45,7 +45,6 @@ export type IExploreSideBarProps = {
   controlUpdateInstalledApps: number
 }
 
-
 const SideBar: FC<IExploreSideBarProps> = ({
   controlUpdateInstalledApps,
 }) => {
@@ -57,12 +56,13 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const { installedApps, setInstalledApps, setIsFetchingInstalledApps } = useContext(ExploreContext)
   const { isFetching: isFetchingInstalledApps, data: ret, refetch: fetchInstalledAppList } = useGetInstalledApps()
   const { mutateAsync: uninstallApp } = useUninstallApp()
+  const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
   const [currId, setCurrId] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
-  const recordAppAccess = useRecordAppAccess()
 
   // Account info
   const { isEducationAccount } = useProviderContext()
+  const { userProfile } = useAppContext()
   const { mutateAsync: logout } = useLogout()
 
   // Language info
@@ -99,7 +99,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const isMobile = media === MediaType.mobile
 
   // 记录应用访问 - 按用户隔离
-  const recordAppAccess = useRecordAppAccess()
+  const handleRecordAppAccess = (appId: string) => {
     // 使用用户ID创建独立的访问记录键
     const userId = userProfile?.id || 'anonymous'
     const accessKey = `explore_recent_app_access_${userId}`
@@ -109,10 +109,9 @@ const SideBar: FC<IExploreSideBarProps> = ({
     // 清理超过10天的访问记录
     const now = new Date()
     const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-    Object.keys(accessData).forEach(key => {
-      if (new Date(accessData[key]) < tenDaysAgo) {
+    Object.keys(accessData).forEach((key) => {
+      if (new Date(accessData[key]) < tenDaysAgo)
         delete accessData[key]
-      }
     })
 
     localStorage.setItem(accessKey, JSON.stringify(accessData))
@@ -125,6 +124,25 @@ const SideBar: FC<IExploreSideBarProps> = ({
       Toast.notify({
         type: 'success',
         message: t('common.api.remove'),
+      })
+    }
+  }
+
+  const handleTogglePin = async (appId: string, isPinned: boolean) => {
+    try {
+      await updatePinStatus({ appId, isPinned: !isPinned })
+      Toast.notify({
+        type: 'success',
+        message: !isPinned ? t('explore.sidebar.action.pin') : t('explore.sidebar.action.unpin'),
+      })
+      // 重新获取应用列表以更新置顶状态
+      fetchInstalledAppList()
+    }
+    catch (error) {
+      console.error('置顶操作失败:', error)
+      Toast.notify({
+        type: 'error',
+        message: '操作失败，请重试',
       })
     }
   }
@@ -143,15 +161,13 @@ const SideBar: FC<IExploreSideBarProps> = ({
     router.push('/signin')
   }
 
-  
   useEffect(() => {
     if (ret && (ret as any)?.installed_apps) {
       const installed_apps = (ret as any).installed_apps
-      if (installed_apps && installed_apps.length > 0) {
+      if (installed_apps && installed_apps.length > 0)
         setInstalledApps(installed_apps)
-      } else {
+      else
         setInstalledApps([])
-      }
     }
   }, [ret])
 
@@ -163,8 +179,6 @@ const SideBar: FC<IExploreSideBarProps> = ({
     fetchInstalledAppList()
   }, [controlUpdateInstalledApps, fetchInstalledAppList])
 
-  
-  
   // 获取最近使用的应用（仅使用前端本地访问记录，最多显示6个）
   const getRecentApps = () => {
     const now = new Date()
@@ -176,7 +190,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
 
     // 过滤出最近7天内有访问的应用，按时间排序
     return installedApps
-      .filter(app => {
+      .filter((app) => {
         const lastAccess = localAccessData[app.id]
         return lastAccess && new Date(lastAccess) > daysAgo
       })
@@ -207,7 +221,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
 
     // 监听当前标签页的 localStorage 变化
     const originalSetItem = localStorage.setItem
-    localStorage.setItem = function(key, value) {
+    localStorage.setItem = function (key, value) {
       originalSetItem.call(this, key, value)
       if (key === userSpecificKey) {
         // 延迟执行，确保新的值已经设置
@@ -262,9 +276,9 @@ const SideBar: FC<IExploreSideBarProps> = ({
                     id={id}
                     isSelected={lastSegment?.toLowerCase() === id}
                     isPinned={is_pinned}
-                    togglePin={() => {/* 在最近使用中不显示置顶功能 */}}
+                    togglePin={() => handleTogglePin(id, is_pinned)}
                     uninstallable={uninstallable}
-                    onRecordAccess={() => recordAppAccess(id)}
+                    onRecordAccess={() => handleRecordAppAccess(id)}
                     onDelete={(id: string) => {
                       setCurrId(id)
                       setShowConfirm(true)
