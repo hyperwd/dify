@@ -1,7 +1,6 @@
 'use client'
 import type { FC } from 'react'
 import React from 'react'
-import { useTranslation } from 'react-i18next'
 import cn from '@/utils/classnames'
 import { Tag01 } from '@/app/components/base/icons/src/vender/line/financeAndECommerce'
 
@@ -20,9 +19,7 @@ const TagCategory: FC<ITagCategoryProps> = ({
   onChange,
   allTagsText,
 }) => {
-  const { t } = useTranslation()
-
-  const allTagsList = [allTagsText, ...tags, t('explore.apps.uncategorized', 'Uncategorized')]
+  const allTagsList = [allTagsText, ...tags]
 
   const itemClassName = (isSelected: boolean) => cn(
     'flex h-[32px] cursor-pointer items-center rounded-lg border-[0.5px] border-transparent px-3 py-[7px] font-medium leading-[18px] text-text-tertiary hover:bg-components-main-nav-nav-button-bg-active',

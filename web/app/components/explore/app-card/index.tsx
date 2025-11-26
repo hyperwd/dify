@@ -6,7 +6,6 @@ import cn from '@/utils/classnames'
 import type { App } from '@/models/explore'
 import AppIcon from '@/app/components/base/app-icon'
 import { AppTypeIcon } from '../../app/type-selector'
-import { AppModeEnum } from '@/types/app'
 export type AppCardProps = {
   app: App
   canCreate: boolean
@@ -40,17 +39,13 @@ const AppCard = ({
           <div className='flex items-center text-sm font-semibold leading-5 text-text-secondary'>
             <div className='truncate' title={appBasicInfo.name}>{appBasicInfo.name}</div>
           </div>
-          <div className='flex items-center text-[10px] font-medium leading-[18px] text-text-tertiary'>
-            {appBasicInfo.mode === AppModeEnum.ADVANCED_CHAT && <div className='truncate'>{t('app.types.advanced').toUpperCase()}</div>}
-            {appBasicInfo.mode === AppModeEnum.CHAT && <div className='truncate'>{t('app.types.chatbot').toUpperCase()}</div>}
-            {appBasicInfo.mode === AppModeEnum.AGENT_CHAT && <div className='truncate'>{t('app.types.agent').toUpperCase()}</div>}
-            {appBasicInfo.mode === AppModeEnum.WORKFLOW && <div className='truncate'>{t('app.types.workflow').toUpperCase()}</div>}
-            {appBasicInfo.mode === AppModeEnum.COMPLETION && <div className='truncate'>{t('app.types.completion').toUpperCase()}</div>}
-          </div>
         </div>
       </div>
-      <div className="description-wrapper system-xs-regular h-[90px] px-[14px] text-text-tertiary">
-        <div className='line-clamp-4 group-hover:line-clamp-2'>
+      <div className='title-wrapper h-[90px] px-[14px] text-xs leading-normal text-text-tertiary'>
+        <div
+          className='line-clamp-2'
+          title={app.description}
+        >
           {app.description}
         </div>
       </div>

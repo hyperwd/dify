@@ -12,6 +12,7 @@ import type { App as ExploreApp } from '@/models/explore'
 import TagCategory from './tag-category'
 import AppCard from '@/app/components/explore/app-card'
 import { fetchAppDetail } from '@/service/explore'
+import { fetchAppDetailDirect } from '@/service/apps'
 import { fetchTagList } from '@/service/tag'
 import { useGetInstalledApps, useUpdateAppPinStatus } from '@/service/use-explore'
 import { useTabSearchParams } from '@/hooks/use-tab-searchparams'
@@ -43,6 +44,25 @@ const AppCardItem: React.FC<{
   const installedAppId = app.id
   const isPinned = pinnedApps.has(installedAppId)
 
+  // 获取应用详细信息，包括描述
+  const { data: appDetail } = useQuery({
+    queryKey: ['app-detail', app.app.id],
+    queryFn: async () => {
+      try {
+        const result = await fetchAppDetailDirect({ url: 'apps', id: app.app.id })
+        return result
+      }
+      catch (error) {
+        console.error('获取应用详细信息失败:', error)
+        return null
+      }
+    },
+    enabled: !!app.app.id,
+  })
+
+  // 使用获取到的应用描述，如果没有则使用空字符串
+  const appDescription = appDetail?.description || ''
+
   const handleAppClick = () => {
     // 使用 Next.js 客户端路由跳转，避免页面整体刷新，与左侧边栏行为一致
     router.push(`/explore/installed/${installedAppId}`)
@@ -71,11 +91,11 @@ const AppCardItem: React.FC<{
             icon_background: app.app.icon_background,
             icon_url: app.app.icon_url,
             name: app.app.name,
-            description: app.app.description,
+            description: appDescription,
             use_icon_as_answer_icon: app.app.use_icon_as_answer_icon || false,
           },
           app_id: app.id,
-          description: app.app.description,
+          description: appDescription,
           copyright: '',
           privacy_policy: null,
           custom_disclaimer: null,

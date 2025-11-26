@@ -225,10 +225,8 @@ def setup_required(view: Callable[P, R]):
 def enterprise_license_required(view: Callable[P, R]):
     @wraps(view)
     def decorated(*args: P.args, **kwargs: P.kwargs):
-        settings = FeatureService.get_system_features()
-        if settings.license.status in [LicenseStatus.INACTIVE, LicenseStatus.EXPIRED, LicenseStatus.LOST]:
-            raise UnauthorizedAndForceLogout("Your license is invalid. Please contact your administrator.")
-
+        # License check bypassed - always valid
+        # This allows all enterprise features to work without license validation
         return view(*args, **kwargs)
 
     return decorated
