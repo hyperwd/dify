@@ -22,27 +22,36 @@ import Loading from '@/app/components/base/loading'
 import Input from '@/app/components/base/input'
 import ItemOperation from '@/app/components/explore/item-operation'
 import Toast from '@/app/components/base/toast'
+import Confirm from '@/app/components/base/confirm'
 import {
   DSLImportMode,
 } from '@/models/app'
 import { useImportDSL } from '@/hooks/use-import-dsl'
 import DSLConfirmModal from '@/app/components/app/create-from-dsl-modal/dsl-confirm-modal'
 import type { Tag } from '@/app/components/base/tag-management/constant'
+import { useAppContext } from '@/context/app-context'
 
 // 应用卡片组件，处理应用模板的点击和操作
-const AppCardItem: React.FC<{
+interface IAppCardItemProps {
   app: any
-  pinnedApps: Set<string>
-  installedApps: any[]
-  handleUpdatePinStatus: (appId: string, isPinned: boolean) => Promise<void>
-}> = ({ app, pinnedApps, handleUpdatePinStatus }) => {
+  handleUpdatePinStatus: (variables: { appId: string; isPinned: boolean }) => Promise<any>
+  id: string
+  isPinned: boolean
+  uninstallable: boolean
+  onRecordAccess: () => void
+  onDelete: (id: string) => void
+}
+
+const AppCardItem: React.FC<IAppCardItemProps> = ({ app, handleUpdatePinStatus, id, isPinned, uninstallable, onRecordAccess, onDelete }) => {
+  const { t } = useTranslation()
   const appRef = React.useRef(null)
-  const isHovering = useHover(appRef)
   const router = useRouter()
 
   // 当前应用就是已安装应用，installedAppId 就是 app.id
   const installedAppId = app.id
-  const isPinned = pinnedApps.has(installedAppId)
+
+  // 获取用户信息用于隔离访问记录
+  const { userProfile } = useAppContext()
 
   // 获取应用详细信息，包括描述
   const { data: appDetail } = useQuery({
@@ -63,16 +72,46 @@ const AppCardItem: React.FC<{
   // 使用获取到的应用描述，如果没有则使用空字符串
   const appDescription = appDetail?.description || ''
 
+  const handlePinToggle = async () => {
+    try {
+      await handleUpdatePinStatus({ appId: installedAppId, isPinned: !isPinned })
+      Toast.notify({
+        type: 'success',
+        message: !isPinned ? t('explore.sidebar.action.pin') : t('explore.sidebar.action.unpin'),
+      })
+    }
+    catch (error) {
+      console.error('置顶操作失败:', error)
+      Toast.notify({
+        type: 'error',
+        message: '操作失败，请重试',
+      })
+    }
+  }
+
   const handleAppClick = () => {
+    // 记录应用访问时间 - 使用用户ID隔离
+    const userId = userProfile?.id || 'anonymous'
+    const accessKey = `explore_recent_app_access_${userId}`
+    const accessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
+    accessData[installedAppId] = new Date().toISOString()
+
+    // 清理超过10天的访问记录
+    const now = new Date()
+    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
+    Object.keys(accessData).forEach(key => {
+      if (new Date(accessData[key]) < tenDaysAgo) {
+        delete accessData[key]
+      }
+    })
+
+    localStorage.setItem(accessKey, JSON.stringify(accessData))
+
     // 使用 Next.js 客户端路由跳转，避免页面整体刷新，与左侧边栏行为一致
     router.push(`/explore/installed/${installedAppId}`)
   }
 
-  const handlePinToggle = () => {
-    // 直接调用置顶功能，因为这些是已安装应用
-    handleUpdatePinStatus(installedAppId, !isPinned)
-  }
-
+  
   return (
     <div
       key={app.id}
@@ -170,13 +209,12 @@ const Apps = ({
     error: installedAppsError,
   } = useGetInstalledApps()
 
-  const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
-
+  
   // 置顶状态管理，与左侧置顶状态保持同步
-  const [pinnedApps, setPinnedApps] = React.useState<Set<string>>(new Set())
-
+  
   // 标签管理状态
   const [tagList, setTagList] = useState<Tag[]>([])
+  const [pinnedApps, setPinnedApps] = useState<Set<string>>(new Set())
 
   // 获取应用标签数据
   const {
@@ -202,6 +240,12 @@ const Apps = ({
       setTagList(appTagsData)
   }, [appTagsData])
 
+  
+  // 当标签改变时，重新获取标签筛选数据
+  React.useEffect(() => {
+    // 标签筛选的数据会自动重新获取，因为queryKey包含currTag
+  }, [currTag])
+
   // 监听installedApps变化，同步置顶状态
   React.useEffect(() => {
     if (installedAppsData && (installedAppsData as any).installed_apps && (installedAppsData as any).installed_apps.length > 0) {
@@ -211,11 +255,6 @@ const Apps = ({
       setPinnedApps(new Set(pinnedIds))
     }
   }, [installedAppsData])
-
-  // 当标签改变时，重新获取标签筛选数据
-  React.useEffect(() => {
-    // 标签筛选的数据会自动重新获取，因为queryKey包含currTag
-  }, [currTag])
 
   // 已安装应用列表
   const installedAppsList = (installedAppsData as any)?.installed_apps || []
@@ -308,35 +347,21 @@ const Apps = ({
   }, [searchKeywords, filteredList])
 
   // 处理置顶功能
-  const handleUpdatePinStatus = async (appId: string, isPinned: boolean) => {
-    try {
-      // 调用真实的置顶API
-      await updatePinStatus({ appId, isPinned })
-
-      Toast.notify({
-        type: 'success',
-        message: isPinned ? t('explore.sidebar.action.pin') : t('explore.sidebar.action.unpin'),
-      })
-    }
-    catch (error) {
-      console.error('置顶操作失败:', error)
-      Toast.notify({
-        type: 'error',
-        message: '操作失败，请重试',
-      })
-    }
-  }
+  const { mutateAsync: handleUpdatePinStatus } = useUpdateAppPinStatus()
 
   const [currApp] = React.useState<ExploreApp | null>(null)
   const [isShowCreateModal, setIsShowCreateModal] = React.useState(false)
-
+  const [showDSLConfirmModal, setShowDSLConfirmModal] = useState(false)
+  const [currId, setCurrId] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
+  
   const {
     handleImportDSL,
     handleImportDSLConfirm,
     versions,
     isFetching,
   } = useImportDSL()
-  const [showDSLConfirmModal, setShowDSLConfirmModal] = useState(false)
+
   const onCreate: CreateAppModalProps['onConfirm'] = async ({
     name,
     icon_type,
@@ -371,6 +396,25 @@ const Apps = ({
       onSuccess,
     })
   }, [handleImportDSLConfirm, onSuccess])
+
+  const recordAppAccess = (appId: string) => {
+    const { userProfile } = useAppContext()
+    const userId = userProfile?.id || 'anonymous'
+    const accessKey = `explore_recent_app_access_${userId}`
+    const accessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
+    accessData[appId] = new Date().toISOString()
+
+    // 清理超过10天的访问记录
+    const now = new Date()
+    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
+    Object.keys(accessData).forEach(key => {
+      if (new Date(accessData[key]) < tenDaysAgo) {
+        delete accessData[key]
+      }
+    })
+
+    localStorage.setItem(accessKey, JSON.stringify(accessData))
+  }
 
   // 处理加载状态
   if (isLoading) {
@@ -441,8 +485,15 @@ const Apps = ({
               key={app.id}
               app={app}
               pinnedApps={pinnedApps}
-              installedApps={installedAppsList}
               handleUpdatePinStatus={handleUpdatePinStatus}
+              id={app.id}
+              isPinned={pinnedApps.has(app.id)}
+              uninstallable={app.uninstallable}
+              onRecordAccess={() => recordAppAccess(app.id)}
+              onDelete={(id) => {
+                setCurrId(id)
+                setShowConfirm(true)
+              }}
             />
           ))}
           {searchFilteredList.length === 0 && (
@@ -452,6 +503,18 @@ const Apps = ({
           )}
         </nav>
       </div>
+      {showConfirm && (
+        <Confirm
+          title={t('explore.sidebar.delete.title')}
+          content={t('explore.sidebar.delete.content')}
+          isShow={showConfirm}
+          onConfirm={() => {
+            // 应用中心不允许删除，这里只是占位
+            setShowConfirm(false)
+          }}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
       {isShowCreateModal && (
         <CreateAppModal
           appIconType={currApp?.app.icon_type || 'emoji'}

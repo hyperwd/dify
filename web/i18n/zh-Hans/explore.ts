@@ -4,6 +4,7 @@ const translation = {
     discovery: '应用中心',
     chat: '智聊',
     workspace: '已置顶',
+    recent: '最近使用',
     adminPanel: '管理后台',
     language: '语言',
     action: {

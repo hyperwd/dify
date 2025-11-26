@@ -4,6 +4,7 @@ const translation = {
     discovery: 'App Center',
     chat: 'Chat',
     workspace: 'Pinned',
+    recent: 'Recent',
     adminPanel: 'Admin Panel',
     language: 'Language',
     action: {

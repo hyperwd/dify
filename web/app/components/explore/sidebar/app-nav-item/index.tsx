@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef } from 'react'
+import React, { useRef, type FC } from 'react'
 
 import { useRouter } from 'next/navigation'
 import { useHover } from 'ahooks'
@@ -11,7 +11,7 @@ import type { AppIconType } from '@/types/app'
 export type IAppNavItemProps = {
   isMobile: boolean
   name: string
-  id: string
+  id: string | null
   icon_type: AppIconType | null
   icon: string
   icon_background: string
@@ -20,10 +20,11 @@ export type IAppNavItemProps = {
   isPinned: boolean
   togglePin: () => void
   uninstallable: boolean
+  onRecordAccess?: () => void
   onDelete: (id: string) => void
 }
 
-export default function AppNavItem({
+const AppNavItem: FC<IAppNavItemProps> = ({
   isMobile,
   name,
   id,
@@ -35,10 +36,11 @@ export default function AppNavItem({
   isPinned,
   togglePin,
   uninstallable,
+  onRecordAccess,
   onDelete,
-}: IAppNavItemProps) {
+}: IAppNavItemProps) => {
   const router = useRouter()
-  const url = `/explore/installed/${id}`
+  const url = `/explore/installed/${id || ''}` as const
   const ref = useRef(null)
   const isHovering = useHover(ref)
   return (
@@ -49,7 +51,8 @@ export default function AppNavItem({
         isSelected ? 'bg-state-base-active text-components-menu-item-text-active' : 'hover:bg-state-base-hover hover:text-components-menu-item-text-hover',
       )}
       onClick={() => {
-        router.push(url) // use Link causes popup item always trigger jump. Can not be solved by e.stopPropagation().
+        onRecordAccess?.() // 记录访问时间
+        if (id) router.push(url) // use Link causes popup item always trigger jump. Can not be solved by e.stopPropagation().
       }}
     >
       {isMobile && <AppIcon size='tiny' iconType={icon_type} icon={icon} background={icon_background} imageUrl={icon_url} />}
@@ -61,11 +64,11 @@ export default function AppNavItem({
           </div>
           <div className='h-6 shrink-0' onClick={e => e.stopPropagation()}>
             <ItemOperation
-              isPinned={isPinned}
               isItemHovering={isHovering}
+              isPinned={isPinned}
               togglePin={togglePin}
               isShowDelete={!uninstallable && !isSelected}
-              onDelete={() => onDelete(id)}
+              onDelete={() => id && onDelete(id)}
             />
           </div>
         </>
@@ -73,3 +76,5 @@ export default function AppNavItem({
     </div>
   )
 }
+
+export default React.memo(AppNavItem)

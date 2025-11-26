@@ -19,8 +19,8 @@ export type IItemOperationProps = {
   isPinned: boolean
   isShowRenameConversation?: boolean
   onRenameConversation?: () => void
-  isShowDelete: boolean
   togglePin: () => void
+  isShowDelete: boolean
   onDelete: () => void
 }
 
@@ -28,9 +28,9 @@ const ItemOperation: FC<IItemOperationProps> = ({
   className,
   isItemHovering,
   isPinned,
-  togglePin,
   isShowRenameConversation,
   onRenameConversation,
+  togglePin,
   isShowDelete,
   onDelete,
 }) => {

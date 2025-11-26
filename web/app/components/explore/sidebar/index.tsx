@@ -45,6 +45,7 @@ export type IExploreSideBarProps = {
   controlUpdateInstalledApps: number
 }
 
+
 const SideBar: FC<IExploreSideBarProps> = ({
   controlUpdateInstalledApps,
 }) => {
@@ -56,7 +57,9 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const { installedApps, setInstalledApps, setIsFetchingInstalledApps } = useContext(ExploreContext)
   const { isFetching: isFetchingInstalledApps, data: ret, refetch: fetchInstalledAppList } = useGetInstalledApps()
   const { mutateAsync: uninstallApp } = useUninstallApp()
-  const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
+  const [currId, setCurrId] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const recordAppAccess = useRecordAppAccess()
 
   // Account info
   const { userProfile } = useAppContext()
@@ -96,17 +99,35 @@ const SideBar: FC<IExploreSideBarProps> = ({
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
 
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [currId, setCurrId] = useState('')
+  // 记录应用访问 - 按用户隔离
+  const recordAppAccess = (appId: string) => {
+    // 使用用户ID创建独立的访问记录键
+    const userId = userProfile?.id || 'anonymous'
+    const accessKey = `explore_recent_app_access_${userId}`
+    const accessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
+    accessData[appId] = new Date().toISOString()
+
+    // 清理超过10天的访问记录
+    const now = new Date()
+    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
+    Object.keys(accessData).forEach(key => {
+      if (new Date(accessData[key]) < tenDaysAgo) {
+        delete accessData[key]
+      }
+    })
+
+    localStorage.setItem(accessKey, JSON.stringify(accessData))
+  }
 
   const handleDelete = async () => {
-    const id = currId
-    await uninstallApp(id)
-    setShowConfirm(false)
-    Toast.notify({
-      type: 'success',
-      message: t('common.api.remove'),
-    })
+    if (currId) {
+      await uninstallApp(currId)
+      setShowConfirm(false)
+      Toast.notify({
+        type: 'success',
+        message: t('common.api.remove'),
+      })
+    }
   }
 
   const handleLogout = async () => {
@@ -123,21 +144,17 @@ const SideBar: FC<IExploreSideBarProps> = ({
     router.push('/signin')
   }
 
-  const handleUpdatePinStatus = async (id: string, isPinned: boolean) => {
-    await updatePinStatus({ appId: id, isPinned })
-    Toast.notify({
-      type: 'success',
-      message: t('common.api.success'),
-    })
-  }
-
+  
   useEffect(() => {
-    const installed_apps = (ret as any)?.installed_apps
-    if (installed_apps && installed_apps.length > 0)
-      setInstalledApps(installed_apps)
-    else
-      setInstalledApps([])
-  }, [ret, setInstalledApps])
+    if (ret && (ret as any)?.installed_apps) {
+      const installed_apps = (ret as any).installed_apps
+      if (installed_apps && installed_apps.length > 0) {
+        setInstalledApps(installed_apps)
+      } else {
+        setInstalledApps([])
+      }
+    }
+  }, [ret])
 
   useEffect(() => {
     setIsFetchingInstalledApps(isFetchingInstalledApps)
@@ -147,7 +164,65 @@ const SideBar: FC<IExploreSideBarProps> = ({
     fetchInstalledAppList()
   }, [controlUpdateInstalledApps, fetchInstalledAppList])
 
-  const pinnedApps = installedApps.filter(({ is_pinned }) => is_pinned)
+  
+  
+  // 获取最近使用的应用（仅使用前端本地访问记录，最多显示6个）
+  const getRecentApps = () => {
+    const now = new Date()
+    const daysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 最近7天
+    // 使用用户ID获取独立的访问记录
+    const userId = userProfile?.id || 'anonymous'
+    const accessKey = `explore_recent_app_access_${userId}`
+    const localAccessData = JSON.parse(localStorage.getItem(accessKey) || '{}')
+
+    // 过滤出最近7天内有访问的应用，按时间排序
+    return installedApps
+      .filter(app => {
+        const lastAccess = localAccessData[app.id]
+        return lastAccess && new Date(lastAccess) > daysAgo
+      })
+      .sort((a, b) => {
+        const aTime = new Date(localAccessData[a.id])
+        const bTime = new Date(localAccessData[b.id])
+        return bTime.getTime() - aTime.getTime()
+      })
+      .slice(0, 6)
+  }
+
+  const recentApps = getRecentApps()
+
+  // 监听本地存储变化，实时更新最近应用列表
+  useEffect(() => {
+    const userId = userProfile?.id || 'anonymous'
+    const userSpecificKey = `explore_recent_app_access_${userId}`
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === userSpecificKey) {
+        // 本地访问数据更新时，重新计算最近应用
+        fetchInstalledAppList() // 重新获取数据以触发重新渲染
+      }
+    }
+
+    // 监听 storage 事件（跨标签页）
+    window.addEventListener('storage', handleStorageChange)
+
+    // 监听当前标签页的 localStorage 变化
+    const originalSetItem = localStorage.setItem
+    localStorage.setItem = function(key, value) {
+      originalSetItem.call(this, key, value)
+      if (key === userSpecificKey) {
+        // 延迟执行，确保新的值已经设置
+        setTimeout(() => {
+          fetchInstalledAppList() // 重新获取数据以触发重新渲染
+        }, 0)
+      }
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      localStorage.setItem = originalSetItem
+    }
+  }, [userProfile?.id]) // 当用户ID变化时重新绑定监听器
 
   // Account dropdown item styles
   const accountItemClassName = `
@@ -168,32 +243,38 @@ const SideBar: FC<IExploreSideBarProps> = ({
           {!isMobile && <div className='text-sm'>{t('explore.sidebar.discovery')}</div>}
         </Link>
       </div>
-      {pinnedApps.length > 0 && (
+      {/* 最近使用的应用 */}
+      {recentApps.length > 0 && (
         <div className='mt-10 min-h-0 flex-1'>
-          <p className='break-all pl-2 text-xs font-medium uppercase text-text-tertiary mobile:px-0'>{t('explore.sidebar.workspace')}</p>
+          <p className='break-all pl-2 text-xs font-medium uppercase text-text-tertiary mobile:px-0'>{t('explore.sidebar.recent')}</p>
           <div className='mt-3 h-full space-y-1 overflow-y-auto overflow-x-hidden'>
-            {pinnedApps.map(({ id, is_pinned, uninstallable, app: { name, icon_type, icon, icon_url, icon_background } }, index) => (
-              <React.Fragment key={id}>
-                <Item
-                  isMobile={isMobile}
-                  name={name}
-                  icon_type={icon_type}
-                  icon={icon}
-                  icon_background={icon_background}
-                  icon_url={icon_url}
-                  id={id}
-                  isSelected={lastSegment?.toLowerCase() === id}
-                  isPinned={is_pinned}
-                  togglePin={() => handleUpdatePinStatus(id, !is_pinned)}
-                  uninstallable={uninstallable}
-                  onDelete={(id) => {
-                    setCurrId(id)
-                    setShowConfirm(true)
-                  }}
-                />
-                {index < pinnedApps.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
+            {recentApps.map((app: any, index) => {
+              const { id, is_pinned, uninstallable } = app
+              const { name, icon_type, icon, icon_url, icon_background } = app.app
+              return (
+                <React.Fragment key={id}>
+                  <Item
+                    isMobile={isMobile}
+                    name={name}
+                    icon_type={icon_type}
+                    icon={icon}
+                    icon_background={icon_background}
+                    icon_url={icon_url}
+                    id={id}
+                    isSelected={lastSegment?.toLowerCase() === id}
+                    isPinned={is_pinned}
+                    togglePin={() => {/* 在最近使用中不显示置顶功能 */}}
+                    uninstallable={uninstallable}
+                    onRecordAccess={() => recordAppAccess(id)}
+                    onDelete={(id: string) => {
+                      setCurrId(id)
+                      setShowConfirm(true)
+                    }}
+                  />
+                  {index < recentApps.length - 1 && <Divider />}
+                </React.Fragment>
+              )
+            })}
           </div>
         </div>
       )}
@@ -202,7 +283,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
       <div className='mt-4 border-t border-divider-subtle pt-4'>
         <Menu as="div" className="relative inline-block w-full text-left">
           {
-            ({ open, close }) => (
+            ({ open }) => (
               <>
                 <MenuButton className={cn('inline-flex w-full items-center justify-center rounded-lg p-2 transition-colors hover:bg-background-default-dodge', open && 'bg-background-default-dodge')}>
                   <div className='flex w-full items-center gap-2'>
