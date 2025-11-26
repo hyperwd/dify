@@ -23,7 +23,7 @@ import type {
 import type { NodeTracingListResponse } from '@/types/workflow'
 
 export const fetchConversationList: Fetcher<ConversationListResponse, { name: string; appId: string; params?: Record<string, any> }> = ({ appId, params }) => {
-  return get<ConversationListResponse>(`/console/api/apps/${appId}/messages`, params)
+  return get<ConversationListResponse>(`/apps/${appId}/messages`, params)
 }
 
 // (Text Generation Application) Session List

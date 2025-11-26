@@ -24,7 +24,7 @@ const Form: FC<FormProps> = React.memo(({
   formSchemas,
   inputClassName,
 }) => {
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
 
   const handleFormChange = (key: string, val: string) => {
     if (key === 'name') {

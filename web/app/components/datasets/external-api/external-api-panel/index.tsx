@@ -19,7 +19,7 @@ type ExternalAPIPanelProps = {
 
 const ExternalAPIPanel: React.FC<ExternalAPIPanelProps> = ({ onClose }) => {
   const { t } = useTranslation()
-  const docLink = useDocLink()
+  const _docLink = useDocLink()
   const { setShowExternalKnowledgeAPIModal } = useModalContext()
   const { externalKnowledgeApiList, mutateExternalKnowledgeApis, isLoading } = useExternalKnowledgeApi()
 

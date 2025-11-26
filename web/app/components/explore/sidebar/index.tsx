@@ -202,7 +202,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
       <div className='mt-4 border-t border-divider-subtle pt-4'>
         <Menu as="div" className="relative inline-block w-full text-left">
           {
-            ({ open, _close }) => (
+            ({ open, close }) => (
               <>
                 <MenuButton className={cn('inline-flex w-full items-center justify-center rounded-lg p-2 transition-colors hover:bg-background-default-dodge', open && 'bg-background-default-dodge')}>
                   <div className='flex w-full items-center gap-2'>

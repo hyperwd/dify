@@ -1,15 +1,18 @@
 'use client'
 
 import React, { useCallback, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useDebounceFn, useMount } from 'ahooks'
+import { useDebounceFn } from 'ahooks'
 import { useHover } from 'ahooks'
+import { useRouter } from 'next/navigation'
 import s from './style.module.css'
 import cn from '@/utils/classnames'
 import type { App as ExploreApp } from '@/models/explore'
 import TagCategory from './tag-category'
 import AppCard from '@/app/components/explore/app-card'
 import { fetchAppDetail } from '@/service/explore'
+import { fetchTagList } from '@/service/tag'
 import { useGetInstalledApps, useUpdateAppPinStatus } from '@/service/use-explore'
 import { useTabSearchParams } from '@/hooks/use-tab-searchparams'
 import CreateAppModal from '@/app/components/explore/create-app-modal'
@@ -23,7 +26,6 @@ import {
 } from '@/models/app'
 import { useImportDSL } from '@/hooks/use-import-dsl'
 import DSLConfirmModal from '@/app/components/app/create-from-dsl-modal/dsl-confirm-modal'
-import { fetchTagList } from '@/service/tag'
 import type { Tag } from '@/app/components/base/tag-management/constant'
 
 // 应用卡片组件，处理应用模板的点击和操作
@@ -35,14 +37,15 @@ const AppCardItem: React.FC<{
 }> = ({ app, pinnedApps, handleUpdatePinStatus }) => {
   const appRef = React.useRef(null)
   const isHovering = useHover(appRef)
+  const router = useRouter()
 
   // 当前应用就是已安装应用，installedAppId 就是 app.id
   const installedAppId = app.id
   const isPinned = pinnedApps.has(installedAppId)
 
   const handleAppClick = () => {
-    // 直接跳转到已安装应用的页面
-    window.location.href = `/explore/installed/${installedAppId}`
+    // 使用 Next.js 客户端路由跳转，避免页面整体刷新，与左侧边栏行为一致
+    router.push(`/explore/installed/${installedAppId}`)
   }
 
   const handlePinToggle = () => {
@@ -69,7 +72,7 @@ const AppCardItem: React.FC<{
             icon_url: app.app.icon_url,
             name: app.app.name,
             description: app.app.description,
-            use_icon_as_answer_icon: app.app.use_icon_as_answer_icon,
+            use_icon_as_answer_icon: app.app.use_icon_as_answer_icon || false,
           },
           app_id: app.id,
           description: app.app.description,
@@ -80,8 +83,8 @@ const AppCardItem: React.FC<{
           position: 0,
           is_listed: true,
           install_count: 0,
-          installed: true, // 这些都是已安装应用
-          editable: false,
+          installed: true, // 显示真实的已安装应用
+          editable: app.editable,
           is_agent: app.app.mode === 'agent-chat',
         }}
         canCreate={false} // 应用中心不需要创建功能
@@ -122,46 +125,7 @@ const Apps = ({
   const { t } = useTranslation()
   const allTagsText = t('explore.apps.allTags', 'All Tags')
 
-  // 使用和左侧完全相同的数据源
-  const {
-    isFetching: isFetchingInstalledApps,
-    data: installedAppsData,
-    error: installedAppsError,
-  } = useGetInstalledApps()
-  const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
-
-  // 置顶状态管理，与左侧置顶状态保持同步
-  const [pinnedApps, setPinnedApps] = React.useState<Set<string>>(new Set())
-
-  // 标签管理状态
-  const [tagList, setTagList] = useState<Tag[]>([])
-  const [isLoadingTags, setIsLoadingTags] = useState(false)
-
-  // 监听installedApps变化，同步置顶状态
-  React.useEffect(() => {
-    if (installedAppsData && (installedAppsData as any).installed_apps && (installedAppsData as any).installed_apps.length > 0) {
-      const pinnedIds = (installedAppsData as any).installed_apps
-        .filter((app: any) => app && app.is_pinned)
-        .map((app: any) => app.id)
-      setPinnedApps(new Set(pinnedIds))
-    }
-  }, [installedAppsData])
-
-  // 加载标签列表
-  useMount(() => {
-    setIsLoadingTags(true)
-    fetchTagList('app')
-      .then((res) => {
-        setTagList(res || [])
-      })
-      .catch((error) => {
-        console.error('加载标签列表失败:', error)
-      })
-      .finally(() => {
-        setIsLoadingTags(false)
-      })
-  })
-
+  // 标签选择和搜索状态
   const [keywords, setKeywords] = useState('')
   const [searchKeywords, setSearchKeywords] = useState('')
 
@@ -179,53 +143,135 @@ const Apps = ({
     disableSearchParams: false,
   })
 
+  // 获取已安装应用数据（包含真实的置顶状态和使用状态）
+  const {
+    isFetching: isFetchingInstalledApps,
+    data: installedAppsData,
+    error: installedAppsError,
+  } = useGetInstalledApps()
+
+  const { mutateAsync: updatePinStatus } = useUpdateAppPinStatus()
+
+  // 置顶状态管理，与左侧置顶状态保持同步
+  const [pinnedApps, setPinnedApps] = React.useState<Set<string>>(new Set())
+
+  // 标签管理状态
+  const [tagList, setTagList] = useState<Tag[]>([])
+
+  // 获取应用标签数据
+  const {
+    isFetching: isFetchingAppTags,
+    data: appTagsData,
+  } = useQuery({
+    queryKey: ['app-tags'],
+    queryFn: async () => {
+      try {
+        const response = await fetchTagList('app')
+        return response || []
+      }
+      catch (error) {
+        console.error('获取应用标签失败:', error)
+        throw error
+      }
+    },
+  })
+
+  // 同步标签数据到状态
+  React.useEffect(() => {
+    if (appTagsData)
+      setTagList(appTagsData)
+  }, [appTagsData])
+
+  // 监听installedApps变化，同步置顶状态
+  React.useEffect(() => {
+    if (installedAppsData && (installedAppsData as any).installed_apps && (installedAppsData as any).installed_apps.length > 0) {
+      const pinnedIds = (installedAppsData as any).installed_apps
+        .filter((app: any) => app && app.is_pinned)
+        .map((app: any) => app.id)
+      setPinnedApps(new Set(pinnedIds))
+    }
+  }, [installedAppsData])
+
+  // 当标签改变时，重新获取标签筛选数据
+  React.useEffect(() => {
+    // 标签筛选的数据会自动重新获取，因为queryKey包含currTag
+  }, [currTag])
+
   // 已安装应用列表
   const installedAppsList = (installedAppsData as any)?.installed_apps || []
+
+  // 获取标签筛选的应用数据
+  const {
+    isFetching: isFetchingTagFilteredApps,
+    data: tagFilteredAppsData,
+    error: tagFilteredAppsError,
+  } = useQuery({
+    queryKey: ['apps-by-tag', currTag, tagList],
+    queryFn: async () => {
+      // 如果选择了"All Tags"，返回null（不使用标签筛选）
+      if (currTag === allTagsText)
+        return null
+
+      // 查找当前选择的标签ID
+      const selectedTag = tagList?.find(tag => tag.name === currTag)
+      if (!selectedTag) {
+        console.warn(`标签 "${currTag}" 未找到`)
+        return null
+      }
+
+      try {
+        const { get } = await import('@/service/base')
+        const data = await get(`/apps?tag_ids=${selectedTag.id}&limit=100`)
+        return data
+      }
+      catch (error) {
+        console.error('获取标签筛选应用失败:', error)
+        throw error
+      }
+    },
+    enabled: !!tagList && tagList.length > 0 && currTag !== allTagsText,
+  })
+
+  // 筛选逻辑：根据选择的标签显示应用
+  const filteredList = useMemo(() => {
+    if (!installedAppsList || installedAppsList.length === 0) return []
+
+    // 如果选择了"All Tags"，显示所有已安装应用
+    if (currTag === allTagsText)
+      return installedAppsList
+
+    // 使用标签筛选的结果
+    if (tagFilteredAppsData && (tagFilteredAppsData as any)?.data) {
+      // 从标签筛选的结果中提取已安装的应用
+      const filteredApps = (tagFilteredAppsData as any).data.filter((app: any) => {
+        return installedAppsList.some((installedApp: any) =>
+          installedApp.app.id === app.id,
+        )
+      })
+
+      // 转换为已安装应用的格式
+      return filteredApps.map((app: any) => {
+        const installedApp = installedAppsList.find((ia: any) => ia.app.id === app.id)
+        return installedApp || null
+      }).filter(Boolean)
+    }
+
+    // 如果正在加载标签筛选结果或出错，返回空数组
+    if (isFetchingTagFilteredApps || tagFilteredAppsError)
+      return []
+
+    // 其他情况返回空数组
+    return []
+  }, [installedAppsList, currTag, allTagsText, tagFilteredAppsData, isFetchingTagFilteredApps, tagFilteredAppsError])
+
+  // 综合加载状态
+  const isLoading = isFetchingInstalledApps || isFetchingAppTags || isFetchingTagFilteredApps
 
   // 使用标签管理系统提供的标签列表
   const allTags = useMemo(() => {
     if (!tagList || tagList.length === 0) return []
     return tagList.map(tag => tag.name).sort()
   }, [tagList])
-
-  // 根据选择的标签过滤已安装应用
-  const filteredList = useMemo(() => {
-    if (!installedAppsList || installedAppsList.length === 0) return []
-
-    if (currTag === allTagsText) return installedAppsList
-
-    return installedAppsList.filter((installedApp: any) => {
-      // 标签数据在 installedApp.app.tags 中
-      const tags = installedApp.app?.tags
-
-      if (!tags || !Array.isArray(tags) || tags.length === 0) {
-        // 如果没有标签，只有当前选择的是"未分类"时才显示
-        return currTag === t('explore.apps.uncategorized', 'Uncategorized')
-      }
-
-      // 检查是否有标签匹配当前选择的标签
-      return tags.some((tag: any) => {
-        if (!tag) return false
-
-        // 情况1: tag是字符串，直接比较名称
-        if (typeof tag === 'string' && tag === currTag)
-          return true
-
-        // 情况2: tag是对象，有name属性
-        if (tag.name && tag.name === currTag)
-          return true
-
-        // 情况3: tag是对象，有id属性，需要找到对应的标签名称
-        if (tag.id) {
-          const currentTag = tagList.find(t => t.id === tag.id)
-          if (currentTag && currentTag.name === currTag)
-            return true
-        }
-
-        return false
-      })
-    })
-  }, [installedAppsList, currTag, allTagsText, t, tagList])
 
   const searchFilteredList = useMemo(() => {
     if (!searchKeywords || !filteredList || filteredList.length === 0)
@@ -307,7 +353,7 @@ const Apps = ({
   }, [handleImportDSLConfirm, onSuccess])
 
   // 处理加载状态
-  if (isFetchingInstalledApps || isLoadingTags) {
+  if (isLoading) {
     return (
       <div className="flex h-full items-center">
         <Loading type="area" />

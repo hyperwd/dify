@@ -53,7 +53,6 @@ class AppListApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
-    @enterprise_license_required
     def get(self):
         """Get app list"""
         current_user, current_tenant_id = current_account_with_tenant()
@@ -194,7 +193,6 @@ class AppApi(Resource):
     @setup_required
     @login_required
     @account_initialization_required
-    @enterprise_license_required
     @get_app_model
     @marshal_with(app_detail_fields_with_site)
     def get(self, app_model):
