@@ -293,7 +293,7 @@ const SideBar: FC<IExploreSideBarProps> = ({
       )}
 
       {/* Account Information at Bottom */}
-      <div className='mt-4 border-t border-divider-subtle pt-4'>
+      <div className='mt-auto border-t border-divider-subtle pt-4'>
         <Menu as="div" className="relative inline-block w-full text-left">
           {
             ({ open }) => (
