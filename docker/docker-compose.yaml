@@ -625,7 +625,7 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
-    image: zanetung/dify-api:coop
+    image: zanetung/coop-api:1.10.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -650,13 +650,11 @@ services:
     networks:
       - ssrf_proxy_network
       - default
-    extra_hosts:
-      - "coop.io:10.81.97.39"
 
   # worker service
   # The Celery worker for processing all queues (dataset, workflow, mail, etc.)
   worker:
-    image: zanetung/dify-api:coop
+    image: zanetung/coop-api:1.10.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -683,7 +681,7 @@ services:
   # worker_beat service
   # Celery beat for scheduling periodic tasks.
   worker_beat:
-    image: zanetung/dify-api:coop
+    image: zanetung/coop-api:1.10.0
     restart: always
     environment:
       # Use the shared environment variables.
@@ -701,7 +699,7 @@ services:
 
   # Frontend web application.
   web:
-    image: zanetung/dify-web:coop
+    image: zanetung/coop-web:1.10.0
     restart: always
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
@@ -727,8 +725,6 @@ services:
       ENABLE_WEBSITE_FIRECRAWL: ${ENABLE_WEBSITE_FIRECRAWL:-true}
       ENABLE_WEBSITE_WATERCRAWL: ${ENABLE_WEBSITE_WATERCRAWL:-true}
       NEXT_PUBLIC_ENABLE_SINGLE_DOLLAR_LATEX: ${NEXT_PUBLIC_ENABLE_SINGLE_DOLLAR_LATEX:-false}
-    extra_hosts:
-      - "coop.io:10.81.97.39"
 
   # The postgres database.
   db:
