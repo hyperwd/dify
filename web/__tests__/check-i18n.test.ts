@@ -10,6 +10,11 @@ describe('check-i18n script functionality', () => {
   const testEnDir = path.join(testDir, 'en-US')
   const testZhDir = path.join(testDir, 'zh-Hans')
 
+  // Helper function to filter translation files
+  function filterTranslationFiles(files: string[]): string[] {
+    return files.filter(file => /\.(ts|js)$/.test(file))
+  }
+
   // Helper function that replicates the getKeysFromLanguage logic
   async function getKeysFromLanguage(language: string, testPath = testDir): Promise<string[]> {
     return new Promise((resolve, reject) => {
@@ -27,59 +32,70 @@ describe('check-i18n script functionality', () => {
           return
         }
 
-        const translationFiles = files.filter(file => /\.(ts|js)$/.test(file))
-
-        translationFiles.forEach((file) => {
-          const filePath = path.join(folderPath, file)
-          const fileName = file.replace(/\.[^/.]+$/, '')
-          const camelCaseFileName = fileName.replace(/[-_](.)/g, (_, c) =>
-            c.toUpperCase(),
-          )
-
-          try {
-            const content = fs.readFileSync(filePath, 'utf8')
-            const moduleExports = {}
-            const context = {
-              exports: moduleExports,
-              module: { exports: moduleExports },
-              require,
-              console,
-              __filename: filePath,
-              __dirname: folderPath,
-            }
-
-            vm.runInNewContext(transpile(content), context)
-            const translationObj = (context.module.exports as any).default || context.module.exports
-
-            if (!translationObj || typeof translationObj !== 'object')
-              throw new Error(`Error parsing file: ${filePath}`)
-
-            const nestedKeys: string[] = []
-            const iterateKeys = (obj: any, prefix = '') => {
-              for (const key in obj) {
-                const nestedKey = prefix ? `${prefix}.${key}` : key
-                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-                  // This is an object (but not array), recurse into it but don't add it as a key
-                  iterateKeys(obj[key], nestedKey)
-                }
-                else {
-                  // This is a leaf node (string, number, boolean, array, etc.), add it as a key
-                  nestedKeys.push(nestedKey)
-                }
-              }
-            }
-            iterateKeys(translationObj)
-
-            const fileKeys = nestedKeys.map(key => `${camelCaseFileName}.${key}`)
-            allKeys.push(...fileKeys)
-          }
-          catch (error) {
-            reject(error)
-          }
-        })
-        resolve(allKeys)
+        const translationFiles = filterTranslationFiles(files)
+        processFiles(translationFiles, folderPath, allKeys, resolve, reject)
       })
     })
+  }
+
+  // Extracted function to process translation files
+  function processFiles(
+    translationFiles: string[],
+    folderPath: string,
+    allKeys: string[],
+    resolve: (value: string[]) => void,
+    _reject: (reason?: any) => void,
+  ): void {
+    translationFiles.forEach((file) => {
+      processFile(file, folderPath, allKeys)
+    })
+    resolve(allKeys)
+  }
+
+  // Extracted function to process a single file
+  function processFile(file: string, folderPath: string, allKeys: string[]): void {
+    const filePath = path.join(folderPath, file)
+    const fileName = file.replace(/\.[^/.]+$/, '')
+    const camelCaseFileName = fileName.replace(/[-_](.)/g, (_, c) =>
+      c.toUpperCase(),
+    )
+
+    const content = fs.readFileSync(filePath, 'utf8')
+    const moduleExports = {}
+    const context = {
+      exports: moduleExports,
+      module: { exports: moduleExports },
+      require,
+      console,
+      __filename: filePath,
+      __dirname: folderPath,
+    }
+
+    vm.runInNewContext(transpile(content), context)
+    const translationObj = (context.module.exports as any).default || context.module.exports
+
+    if (!translationObj || typeof translationObj !== 'object')
+      throw new Error(`Error parsing file: ${filePath}`)
+
+    const nestedKeys: string[] = []
+    iterateKeys(translationObj, nestedKeys)
+    const fileKeys = nestedKeys.map(key => `${camelCaseFileName}.${key}`)
+    allKeys.push(...fileKeys)
+  }
+
+  // Extracted function to iterate through object keys
+  function iterateKeys(obj: any, nestedKeys: string[], prefix = ''): void {
+    for (const key in obj) {
+      const nestedKey = prefix ? `${prefix}.${key}` : key
+      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        // This is an object (but not array), recurse into it but don't add it as a key
+        iterateKeys(obj[key], nestedKeys, nestedKey)
+      }
+      else {
+        // This is a leaf node (string, number, boolean, array, etc.), add it as a key
+        nestedKeys.push(nestedKey)
+      }
+    }
   }
 
   beforeEach(() => {
@@ -268,8 +284,9 @@ export default translation
 
       // Test file filtering logic
       const targetFile = 'components'
+      const camelCaseFileName = targetFile.replace(/[-_](.)/g, (_, c) => c.toUpperCase())
       const filteredEnKeys = allEnKeys.filter(key =>
-        key.startsWith(targetFile.replace(/[-_](.)/g, (_, c) => c.toUpperCase())),
+        key.startsWith(camelCaseFileName),
       )
 
       expect(allEnKeys).toHaveLength(4) // 2 keys from each file
@@ -570,65 +587,9 @@ export default translation
       const linesToRemove: number[] = []
 
       for (const keyToRemove of keysToRemove) {
-        let targetLineIndex = -1
-        const linesToRemoveForKey: number[] = []
-
-        // Find the key line (simplified for single-level keys in test)
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i]
-          const keyPattern = new RegExp(`^\\s*${keyToRemove}\\s*:`)
-          if (keyPattern.test(line)) {
-            targetLineIndex = i
-            break
-          }
-        }
-
+        const targetLineIndex = findKeyLine(lines, keyToRemove)
         if (targetLineIndex !== -1) {
-          linesToRemoveForKey.push(targetLineIndex)
-
-          // Check if this is a multiline key-value pair
-          const keyLine = lines[targetLineIndex]
-          const trimmedKeyLine = keyLine.trim()
-
-          // If key line ends with ":" (not complete value), it's likely multiline
-          if (trimmedKeyLine.endsWith(':') && !trimmedKeyLine.includes('{') && !trimmedKeyLine.match(/:\s*['"`]/)) {
-            // Find the value lines that belong to this key
-            let currentLine = targetLineIndex + 1
-            let foundValue = false
-
-            while (currentLine < lines.length) {
-              const line = lines[currentLine]
-              const trimmed = line.trim()
-
-              // Skip empty lines
-              if (trimmed === '') {
-                currentLine++
-                continue
-              }
-
-              // Check if this line starts a new key (indicates end of current value)
-              if (trimmed.match(/^\w+\s*:/))
-                break
-
-              // Check if this line is part of the value
-              if (trimmed.startsWith('\'') || trimmed.startsWith('"') || trimmed.startsWith('`') || foundValue) {
-                linesToRemoveForKey.push(currentLine)
-                foundValue = true
-
-                // Check if this line ends the value (ends with quote and comma/no comma)
-                if ((trimmed.endsWith('\',') || trimmed.endsWith('",') || trimmed.endsWith('`,')
-                     || trimmed.endsWith('\'') || trimmed.endsWith('"') || trimmed.endsWith('`'))
-                    && !trimmed.startsWith('//'))
-                  break
-              }
-              else {
-                break
-              }
-
-              currentLine++
-            }
-          }
-
+          const linesToRemoveForKey = processKeyRemoval(lines, targetLineIndex)
           linesToRemove.push(...linesToRemoveForKey)
         }
       }
@@ -640,6 +601,97 @@ export default translation
         lines.splice(lineIndex, 1)
 
       return lines.join('\n')
+    }
+
+    // Helper function to find the line containing a specific key
+    function findKeyLine(lines: string[], keyToRemove: string): number {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const keyPattern = new RegExp(`^\\s*${keyToRemove}\\s*:`)
+        if (keyPattern.test(line))
+          return i
+      }
+      return -1
+    }
+
+    // Helper function to process the removal of lines for a specific key
+    function processKeyRemoval(lines: string[], targetLineIndex: number): number[] {
+      const linesToRemoveForKey = [targetLineIndex]
+      const keyLine = lines[targetLineIndex]
+      const trimmedKeyLine = keyLine.trim()
+
+      // If key line ends with ":" (not complete value), it's likely multiline
+      if (isMultilineKey(trimmedKeyLine)) {
+        const multilineValueLines = findMultilineValueLines(lines, targetLineIndex)
+        linesToRemoveForKey.push(...multilineValueLines)
+      }
+
+      return linesToRemoveForKey
+    }
+
+    // Helper function to check if a key is multiline
+    function isMultilineKey(trimmedKeyLine: string): boolean {
+      return trimmedKeyLine.endsWith(':')
+             && !trimmedKeyLine.includes('{')
+             && !trimmedKeyLine.match(/:\s*['"`]/)
+    }
+
+    // Helper function to find all lines belonging to a multiline value
+    function findMultilineValueLines(lines: string[], targetLineIndex: number): number[] {
+      const valueLines: number[] = []
+      let currentLine = targetLineIndex + 1
+      let foundValue = false
+
+      while (currentLine < lines.length) {
+        const line = lines[currentLine]
+        const trimmed = line.trim()
+
+        // Skip empty lines
+        if (trimmed === '') {
+          currentLine++
+          continue
+        }
+
+        // Check if this line starts a new key (indicates end of current value)
+        if (trimmed.match(/^\w+\s*:/))
+          break
+
+        // Check if this line is part of the value
+        if (isValueLine(trimmed, foundValue)) {
+          valueLines.push(currentLine)
+          foundValue = true
+
+          // Check if this line ends the value (ends with quote and comma/no comma)
+          if (isEndOfValue(trimmed))
+            break
+        }
+        else {
+          break
+        }
+
+        currentLine++
+      }
+
+      return valueLines
+    }
+
+    // Helper function to check if a line is part of a multiline value
+    function isValueLine(trimmed: string, foundValue: boolean): boolean {
+      return trimmed.startsWith('\'')
+             || trimmed.startsWith('"')
+             || trimmed.startsWith('`')
+             || foundValue
+    }
+
+    // Helper function to check if a line ends a multiline value
+    function isEndOfValue(trimmed: string): boolean {
+      return (trimmed.endsWith('\',')
+              || trimmed.endsWith('",')
+              || trimmed.endsWith('`,')
+              || trimmed.endsWith('\'')
+              || trimmed.endsWith('"')
+              || trimmed.endsWith('`'))
+             && !trimmed.startsWith('//')
     }
 
     it('should remove single-line key-value pairs correctly', () => {

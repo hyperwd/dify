@@ -161,6 +161,7 @@ export const MarketplaceContextProvider = ({
         sortOrder: sortRef.current.sortOrder,
         type: getMarketplaceListFilterType(activePluginTypeRef.current),
         page: pageRef.current,
+        exclude,
       })
       const url = new URL(window.location.href)
       if (searchParams?.language)

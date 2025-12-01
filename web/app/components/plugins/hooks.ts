@@ -6,6 +6,7 @@ import {
   tagKeys,
 } from './constants'
 import { PluginCategoryEnum } from './types'
+import { useGlobalPublicStore } from '@/context/global-public-context'
 
 export type Tag = {
   name: string
@@ -91,8 +92,13 @@ export const PLUGIN_PAGE_TABS_MAP = {
 
 export const usePluginPageTabs = () => {
   const { t } = useTranslation()
+  const { enable_marketplace } = useGlobalPublicStore(s => s.systemFeatures)
   const tabs = [
     { value: PLUGIN_PAGE_TABS_MAP.plugins, text: t('common.menus.plugins') },
   ]
+
+  if (enable_marketplace)
+    tabs.push({ value: PLUGIN_PAGE_TABS_MAP.marketplace, text: t('plugin.marketplace.discover') })
+
   return tabs
 }
