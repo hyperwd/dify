@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useContext } from 'use-context-selector'
-import Link from 'next/link'
 import {
-  RiBookOpenLine,
   RiDragDropLine,
   RiEqualizer2Line,
 } from '@remixicon/react'
@@ -33,11 +30,9 @@ import {
 import type { Dependency } from '../types'
 import type { PluginDeclaration, PluginManifestInMarket } from '../types'
 import { sleep } from '@/utils'
-import { getDocsUrl } from '@/app/components/plugins/utils'
 import { fetchBundleInfoFromMarketPlace, fetchManifestFromMarketPlace } from '@/service/plugins'
 import { MARKETPLACE_API_PREFIX } from '@/config'
 import { SUPPORT_INSTALL_LOCAL_FILE_EXTENSIONS } from '@/config'
-import I18n from '@/context/i18n'
 import { noop } from 'lodash-es'
 import { PLUGIN_TYPE_SEARCH_MAP } from '../marketplace/plugin-type-switch'
 import { PLUGIN_PAGE_TABS_MAP } from '../hooks'
@@ -56,7 +51,6 @@ const PluginPage = ({
   marketplace,
 }: PluginPageProps) => {
   const { t } = useTranslation()
-  const { locale } = useContext(I18n)
   const searchParams = useSearchParams()
   const { replace } = useRouter()
   useDocumentTitle(t('plugin.metadata.title'))
@@ -189,29 +183,7 @@ const PluginPage = ({
             {
               isExploringMarketplace && (
                 <>
-                  <Link
-                    href='https://github.com/langgenius/dify-plugins/issues/new?template=plugin_request.yaml'
-                    target='_blank'
-                  >
-                    <Button
-                      variant='ghost'
-                      className='text-text-tertiary'
-                    >
-                      {t('plugin.requestAPlugin')}
-                    </Button>
-                  </Link>
-                  <Link
-                    href={getDocsUrl(locale, '/plugins/publish-plugins/publish-to-dify-marketplace/README')}
-                    target='_blank'
-                  >
-                    <Button
-                      className='px-3'
-                      variant='secondary-accent'
-                    >
-                      <RiBookOpenLine className='mr-1 h-4 w-4' />
-                      {t('plugin.publishPlugins')}
-                    </Button>
-                  </Link>
+                  {/* 申请插件和发布插件按钮已移除 */}
                   <div className='mx-1 h-3.5 w-[1px] shrink-0 bg-divider-regular'></div>
                 </>
               )

@@ -98,7 +98,7 @@ export const usePluginPageTabs = () => {
   ]
 
   if (enable_marketplace)
-    tabs.push({ value: PLUGIN_PAGE_TABS_MAP.marketplace, text: t('plugin.marketplace.discover') })
+    tabs.push({ value: PLUGIN_PAGE_TABS_MAP.marketplace, text: t('plugin.marketplace.more') })
 
   return tabs
 }

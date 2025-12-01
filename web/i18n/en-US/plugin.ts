@@ -252,7 +252,8 @@ const translation = {
   },
   marketplace: {
     empower: 'Empower your AI development',
-    discover: 'Discover',
+    discover: 'Seamlessly use Dify marketplace plugins',
+    more: 'More',
     and: 'and',
     difyMarketplace: 'Coop Marketplace',
     moreFrom: 'More from Marketplace',

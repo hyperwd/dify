@@ -252,7 +252,8 @@ const translation = {
   },
   marketplace: {
     empower: '助力您的 AI 开发',
-    discover: '探索',
+    discover: '无缝使用Dify市场插件',
+    more: '更多',
     and: '和',
     difyMarketplace: 'Coop 市场',
     moreFrom: '更多来自市场',

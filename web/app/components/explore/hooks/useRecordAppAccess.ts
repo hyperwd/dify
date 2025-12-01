@@ -14,10 +14,9 @@ const useRecordAppAccess = () => {
     // 清理超过10天的访问记录
     const now = new Date()
     const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
-    Object.keys(accessData).forEach(key => {
-      if (new Date(accessData[key]) < tenDaysAgo) {
+    Object.keys(accessData).forEach((key) => {
+      if (new Date(accessData[key]) < tenDaysAgo)
         delete accessData[key]
-      }
     })
 
     localStorage.setItem(accessKey, JSON.stringify(accessData))
