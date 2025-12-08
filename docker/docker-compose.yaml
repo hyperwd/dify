@@ -699,7 +699,7 @@ services:
 
   # Frontend web application.
   web:
-    image: zanetung/coop-web:1.10.0
+    image: zanetung/coop-web:1.10.0-cve-fix
     restart: always
     environment:
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
